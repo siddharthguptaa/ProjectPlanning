@@ -1,0 +1,14 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "name": "Product Roadmap",
+      "epics": [],
+      "milestones": []
+    }
+  ],
+  "activeId": 1,
+  "nextProjectId": 2,
+  "nextEpicId": 1,
+  "nextMilestoneId": 1
+}

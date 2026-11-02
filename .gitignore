@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+*.log
+
+# --- server/data layout ---
+# users.json holds login credentials (hashed, but still) — kept OFF git.
+# It has its own local rolling backup (users.backup.json) instead.
+server/data/users.json
+server/data/users.backup.json
+
+# Each user's roadmap data (server/data/roadmaps/user-<id>.json) IS
+# tracked on purpose — see roadmapStore.js and the README. Only the
+# rolling backup copies are excluded, since they're derived from the
+# tracked files and don't need their own history.
+server/data/roadmaps/*.backup.json
