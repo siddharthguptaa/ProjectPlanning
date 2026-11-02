@@ -1,0 +1,77 @@
+# GitLab CI/CD pipeline for this project.
+#
+# What this does on every push:
+#   1. Installs dependencies for both client and server (just to catch a
+#      broken package.json / lockfile early — nothing more).
+#   2. Builds the React app (client/dist).
+#   3. Leaves a "deploy" job available to run MANUALLY (not automatic —
+#      you click "Play" on it in GitLab's pipeline view) that copies the
+#      built app to your own server over SSH and restarts it there.
+#
+# To use the deploy job, set these in GitLab under
+# Settings > CI/CD > Variables (mark SSH_PRIVATE_KEY as "Protected" and
+# "Masked" if your branch is protected):
+#   SSH_PRIVATE_KEY   - private key for a user that can SSH into your server
+#   DEPLOY_HOST       - e.g. your-server.example.com
+#   DEPLOY_USER       - e.g. deploy
+#   DEPLOY_PATH       - e.g. /var/www/roadmap-planner
+#
+# This assumes your server already has Node.js and pm2 (or similar)
+# installed, and that server/data/ on the server is where you want the
+# live data to persist across deploys.
+
+stages:
+  - install
+  - build
+  - deploy
+
+image: node:20
+
+install_client:
+  stage: install
+  script:
+    - cd client && npm install
+  artifacts:
+    paths:
+      - client/node_modules
+    expire_in: 1 hour
+
+install_server:
+  stage: install
+  script:
+    - cd server && npm install
+  artifacts:
+    paths:
+      - server/node_modules
+    expire_in: 1 hour
+
+build_client:
+  stage: build
+  needs: ["install_client"]
+  script:
+    - cd client && npm run build
+  artifacts:
+    paths:
+      - client/dist
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  needs: ["build_client", "install_server"]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  when: manual # deliberate step, not automatic — this touches a real server
+  before_script:
+    - apk add --no-cache openssh-client rsync
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+  script:
+    # Copy everything except node_modules/.git — the server installs its
+    # own deps below. server/data/ is deliberately left alone on the
+    # remote side (rsync won't touch files not present in the source
+    # unless you add --delete, which this intentionally omits).
+    - rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'server/data' ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH"
+    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd $DEPLOY_PATH/server && npm install --production && (pm2 restart roadmap-planner || pm2 start server.js --name roadmap-planner)"

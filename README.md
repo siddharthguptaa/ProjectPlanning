@@ -139,6 +139,32 @@ platforms wipe the filesystem on every deploy, in which case point the
 folder paths in `server/userStore.js` and `server/roadmapStore.js` at a
 mounted persistent volume instead.
 
+## Deploying via GitLab CI/CD
+
+`.gitlab-ci.yml` is included and does three things on every push:
+install both client and server dependencies (to catch a broken
+`package.json` early), build the client, and leave a **manual** deploy
+job that `rsync`s the project to your own server over SSH and restarts it
+with `pm2`. It's manual on purpose — you click "Play" on it in GitLab's
+pipeline view rather than it running automatically, since it touches a
+real server.
+
+To use the deploy job, set these under **Settings → CI/CD → Variables**
+in your GitLab project:
+
+| Variable | Example |
+|---|---|
+| `SSH_PRIVATE_KEY` | private key for a user that can SSH into your server |
+| `DEPLOY_HOST` | `your-server.example.com` |
+| `DEPLOY_USER` | `deploy` |
+| `DEPLOY_PATH` | `/var/www/roadmap-planner` |
+
+This assumes the target server already has Node.js and `pm2` installed.
+GitLab itself only runs the pipeline job (a temporary container) — the
+app still ends up running on *your* server, same as any other deployment
+method above; GitLab Pages can't host this app on its own, since it only
+serves static files and this needs a persistent backend.
+
 ## Code style notes
 
 - **Data flow**: everything for the logged-in user's own roadmap goes

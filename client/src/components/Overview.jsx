@@ -1,10 +1,14 @@
 import React, { useMemo } from 'react';
-import { varianceFor, milestoneVariance } from '../dateMath.js';
+import {
+  parseDate, fmt, workdays, todayUTC, effectiveRevisedEnd,
+  varianceFor, remainingWorkdaysFor, milestoneVariance
+} from '../dateMath.js';
 
-// Looks at one project's epics and milestones and counts up how many are
-// in each state (on track, behind, unplanned, etc.), plus builds a list
-// of the specific things that need attention (late epics, overdue
-// milestones). Returns a plain object — no React here, just counting.
+// Looks at one project's epics and milestones and builds everything the
+// overview card needs: status counts, the "needs attention" shortlist,
+// and TWO full lists — every epic (sorted by date) and every milestone
+// (sorted by date) — so you can see a project's whole shape without
+// opening it. No React here, just plain data in, plain data out.
 function computeProjectStats(project) {
   let onTrackCount = 0;
   let behindCount = 0;
@@ -52,9 +56,86 @@ function computeProjectStats(project) {
     }
   });
 
+  // --- Every epic, in timeline order, each reduced to a name + date
+  // range + one status chip (covers started/not-started/unplanned, not
+  // just the "behind" ones the attention list above cares about). ---
+  const epicsSorted = project.epics.map((epic) => {
+    const planStart = parseDate(epic.planStart);
+    const actualStart = parseDate(epic.actualStart);
+    const sortDate = planStart || actualStart;
+    const isUnplanned = !epic.planStart;
+
+    let chipText, chipClass;
+    if (isUnplanned) {
+      chipClass = 'unplanned';
+      chipText = 'Unplanned';
+    } else if (!epic.actualStart) {
+      const daysToStart = workdays(todayUTC(), planStart);
+      if (daysToStart > 0) { chipClass = 'pending'; chipText = `Starts in ${daysToStart}d`; }
+      else if (daysToStart === 0) { chipClass = 'pending'; chipText = 'Starts today'; }
+      else { chipClass = 'late'; chipText = `${Math.abs(daysToStart)}d overdue to start`; }
+    } else {
+      const variance = varianceFor(epic);
+      if (variance) {
+        if (variance.value > 0) {
+          chipClass = 'late';
+          chipText = `+${variance.value} md${variance.ongoing ? ' so far' : ''}`;
+        } else {
+          chipClass = 'ok';
+          chipText = variance.ongoing ? 'On track' : (variance.value === 0 ? 'On plan' : `${Math.abs(variance.value)} md early`);
+        }
+        if (variance.ongoing) {
+          const remaining = remainingWorkdaysFor(epic);
+          if (remaining !== null) {
+            chipText += remaining > 0 ? ` · ${remaining}d left` : remaining === 0 ? ' · due today' : ` · ${Math.abs(remaining)}d overdue`;
+          }
+        }
+      } else {
+        chipClass = 'pending';
+        chipText = '—';
+      }
+    }
+
+    const dateRangeText = isUnplanned
+      ? (actualStart
+          ? `${fmt(actualStart)} – ${epic.actualComplete ? fmt(parseDate(epic.actualComplete)) : (epic.actualEnd ? fmt(parseDate(epic.actualEnd)) : 'ongoing')}`
+          : '—')
+      : `${fmt(planStart)} – ${fmt(parseDate(effectiveRevisedEnd(epic)))}`;
+
+    return { id: epic.id, name: epic.name, sortDate, dateRangeText, chipText, chipClass };
+  }).sort((a, b) => (a.sortDate ? a.sortDate.getTime() : 0) - (b.sortDate ? b.sortDate.getTime() : 0));
+
+  // --- Every milestone, both categories together, in planned-date order. ---
+  const milestonesSorted = project.milestones.map((milestone) => {
+    const planned = parseDate(milestone.plannedDate);
+    const variance = milestoneVariance(milestone);
+
+    let chipText, chipClass;
+    if (!variance) {
+      chipClass = 'pending'; chipText = '—';
+    } else if (variance.pending && variance.overdue) {
+      chipClass = 'late'; chipText = `${variance.value}d overdue`;
+    } else if (variance.pending) {
+      chipClass = 'pending'; chipText = variance.daysLeft === 0 ? 'Due today' : `${variance.daysLeft}d left`;
+    } else {
+      chipClass = variance.value > 0 ? 'late' : (variance.value < 0 ? 'ok' : 'pending');
+      chipText = variance.value === 0 ? 'On time' : (variance.value > 0 ? `+${variance.value}d late` : `${Math.abs(variance.value)}d early`);
+    }
+
+    return {
+      id: milestone.id,
+      name: milestone.name,
+      category: milestone.category === 'customer' ? 'customer' : 'project',
+      sortDate: planned,
+      dateText: planned ? fmt(planned) : '—',
+      chipText, chipClass
+    };
+  }).sort((a, b) => (a.sortDate ? a.sortDate.getTime() : 0) - (b.sortDate ? b.sortDate.getTime() : 0));
+
   return {
     onTrackCount, behindCount, unplannedCount, notStartedCount,
-    overdueMilestoneCount, nextUpcomingMilestone, needsAttention
+    overdueMilestoneCount, nextUpcomingMilestone, needsAttention,
+    epicsSorted, milestonesSorted
   };
 }
 
@@ -147,6 +228,41 @@ const ProjectCard = React.memo(function ProjectCard({ project, stats, onOpenProj
           {stats.nextUpcomingMilestone.daysLeft === 0 ? 'due today' : stats.nextUpcomingMilestone.daysLeft + 'd left'}
         </div>
       )}
+
+      <div className="ov-attention-label ov-section-gap">Epics by date ({stats.epicsSorted.length})</div>
+      <div className="ov-attention-list">
+        {stats.epicsSorted.length === 0 ? (
+          <div className="ov-empty-note">No epics yet.</div>
+        ) : (
+          stats.epicsSorted.map((epic) => (
+            <div className="ov-attention-item" key={epic.id}>
+              <span className="ai-name" title={`${epic.name} (${epic.dateRangeText})`}>
+                {epic.name}<span className="ov-sub">{epic.dateRangeText}</span>
+              </span>
+              <span className={'ai-chip ' + epic.chipClass}>{epic.chipText}</span>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="ov-attention-label ov-section-gap">Milestones — Customer &amp; Project ({stats.milestonesSorted.length})</div>
+      <div className="ov-attention-list">
+        {stats.milestonesSorted.length === 0 ? (
+          <div className="ov-empty-note">No milestones yet.</div>
+        ) : (
+          stats.milestonesSorted.map((ms) => (
+            <div className="ov-attention-item" key={ms.id}>
+              <span className={'ai-type-chip ' + ms.category} title={ms.category === 'customer' ? 'Customer milestone' : 'Project milestone'}>
+                {ms.category === 'customer' ? 'C' : 'P'}
+              </span>
+              <span className="ai-name" title={`${ms.name} (${ms.dateText})`}>
+                {ms.name}<span className="ov-sub">{ms.dateText}</span>
+              </span>
+              <span className={'ai-chip ' + ms.chipClass}>{ms.chipText}</span>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 });

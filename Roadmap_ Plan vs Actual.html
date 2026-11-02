@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roadmap: Plan vs Actual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<style>
+  :root {
+    --paper: #eef2f0;
+    --paper-line: rgba(34,58,68,0.08);
+    --ink: #1c2b33;
+    --ink-soft: #52646c;
+    --plan: #2c5f7c;
+    --plan-fill: rgba(44,95,124,0.10);
+    --revised: #8a5a2c;
+    --actual-late: #c1440e;
+    --actual-ok: #2f7d5a;
+    --actual-fill-late: rgba(193,68,14,0.14);
+    --actual-fill-ok: rgba(47,125,90,0.14);
+    --unplanned: #6b4fa8;
+    --unplanned-fill: rgba(107,79,168,0.14);
+    --card: #ffffff;
+    --border: rgba(28,43,51,0.14);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #15201f; --paper-line: rgba(255,255,255,0.06); --ink: #e7ede9; --ink-soft: #9fb0ab;
+      --plan: #7fb3d5; --plan-fill: rgba(127,179,213,0.14); --revised: #d8a25f;
+      --actual-late: #ef8259; --actual-ok: #6fd19c;
+      --actual-fill-late: rgba(239,130,89,0.16); --actual-fill-ok: rgba(111,209,156,0.16);
+      --unplanned: #b09ae0; --unplanned-fill: rgba(176,154,224,0.18);
+      --card: #1c2827; --border: rgba(255,255,255,0.12);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15201f; --paper-line: rgba(255,255,255,0.06); --ink: #e7ede9; --ink-soft: #9fb0ab;
+    --plan: #7fb3d5; --plan-fill: rgba(127,179,213,0.14); --revised: #d8a25f;
+    --actual-late: #ef8259; --actual-ok: #6fd19c;
+    --actual-fill-late: rgba(239,130,89,0.16); --actual-fill-ok: rgba(111,209,156,0.16);
+    --unplanned: #b09ae0; --unplanned-fill: rgba(176,154,224,0.18);
+    --card: #1c2827; --border: rgba(255,255,255,0.12);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100%; background: var(--paper);
+    background-image: linear-gradient(var(--paper-line) 1px, transparent 1px), linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    background-size: 28px 28px; color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.5;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 36px 24px 64px; }
+
+  header { margin-bottom: 22px; }
+  header .eyebrow { font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--ink-soft); margin: 0 0 6px; }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 30px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  header p.sub { margin: 0; color: var(--ink-soft); font-size: 15px; max-width: 66ch; }
+  .legend { display: flex; gap: 22px; margin-top: 18px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+  .swatch { width: 22px; height: 10px; border-radius: 2px; flex: none; }
+  .swatch.plan { background: var(--plan-fill); border: 1.5px dashed var(--plan); }
+  .swatch.ok { background: var(--actual-fill-ok); border: 1.5px solid var(--actual-ok); }
+  .swatch.late { background: var(--actual-fill-late); border: 1.5px solid var(--actual-late); }
+  .swatch.unplanned { background: var(--unplanned-fill); border: 1.5px solid var(--unplanned); }
+  .swatch.revised { width: 2px; height: 14px; background: var(--revised); border-radius: 0; }
+
+  /* --- project tabs --- */
+  .tabs-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; margin: 0 0 24px; }
+  .project-tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .overview-toggle { border-radius: 999px; padding: 9px 16px; font-size: 13.5px; font-weight: 500; white-space: nowrap; border: 1px solid var(--border); background: var(--card); color: var(--ink); cursor: pointer; }
+  .overview-toggle.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .overview-toggle:hover { border-color: var(--ink); }
+  .tab { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 3px 3px 3px 4px; background: var(--card); }
+  .tab.active { border-color: var(--plan); background: var(--plan-fill); }
+  .tab-name { background: none; border: none; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink); cursor: pointer; padding: 6px 6px 6px 10px; border-radius: 999px 0 0 999px; }
+  .tab-icon { background: none; border: none; color: var(--ink-soft); font-size: 12px; cursor: pointer; padding: 6px 8px; border-radius: 999px; line-height: 1; }
+  .tab-icon:hover { color: var(--ink); background: var(--paper-line); }
+  .tab-add { border: 1px dashed var(--border); border-radius: 999px; padding: 8px 16px; background: transparent; color: var(--ink-soft); font-size: 13.5px; cursor: pointer; }
+  .tab-add:hover { color: var(--ink); border-color: var(--ink); }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 22px; }
+  .card h2 { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+  .card h2 + p.tip { margin: 0 0 16px; font-size: 12.5px; color: var(--ink-soft); }
+
+  .form-section { margin-bottom: 12px; }
+  .form-section-label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 8px; }
+  .form-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 10px; align-items: end; }
+  .form-grid.four { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .form-grid.five { grid-template-columns: 1.3fr 1fr 1fr 1fr 1.3fr; }
+  .form-grid.full-row { grid-template-columns: 1fr; margin-top: 10px; }
+  @media (max-width: 820px) {
+    .form-grid, .form-grid.four, .form-grid.five { grid-template-columns: 1fr 1fr; }
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; color: var(--ink-soft); }
+  .field input, .field textarea, .field select {
+    font: inherit; font-size: 14px; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--paper); color: var(--ink); resize: vertical;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid var(--plan); outline-offset: 1px; }
+  .field.revised input { border-color: var(--revised); }
+  button { font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 6px; border: 1px solid transparent; }
+  .btn-add { background: var(--ink); color: var(--card); padding: 9px 16px; white-space: nowrap; }
+  .btn-add:hover { opacity: 0.88; }
+  .btn-plain { background: transparent; color: var(--ink-soft); border: 1px solid var(--border); padding: 9px 14px; }
+  .btn-plain:hover { color: var(--ink); border-color: var(--ink); }
+  .hint { font-size: 12.5px; color: var(--ink-soft); margin-top: 12px; }
+  .form-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+  .table-scroll { overflow-x: auto; margin-top: 4px; }
+  table.epics { border-collapse: collapse; width: 100%; min-width: 1080px; font-size: 12.5px; }
+  table.epics th {
+    text-align: left; font-weight: 600; color: var(--ink-soft);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em;
+    padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  table.epics td { padding: 8px 10px; border-bottom: 1px solid var(--paper-line); white-space: nowrap; vertical-align: top; }
+  table.epics tr.editing td { background: var(--plan-fill); }
+  table.epics td.name-cell { font-weight: 500; white-space: normal; min-width: 130px; }
+  table.epics td.desc-cell { white-space: normal; min-width: 180px; max-width: 260px; color: var(--ink-soft); font-size: 12px; }
+  .metric-late { color: var(--actual-late); font-weight: 600; }
+  .metric-ok { color: var(--actual-ok); font-weight: 600; }
+  .metric-neutral { color: var(--ink-soft); }
+  .row-actions { display: flex; gap: 6px; }
+  .row-actions button { background: transparent; color: var(--ink-soft); border: 1px solid var(--border); padding: 5px 9px; font-size: 12px; }
+  .row-actions button:hover { color: var(--ink); border-color: var(--ink); }
+  .row-actions button.danger:hover { color: var(--actual-late); border-color: var(--actual-late); }
+
+  .chart-scroll { overflow-x: auto; }
+  .chart-inner { min-width: 760px; position: relative; }
+  .axis { position: relative; height: 26px; margin-left: 190px; border-bottom: 1px solid var(--border); }
+  .axis .tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--border); font-size: 11px; color: var(--ink-soft); padding-left: 4px; white-space: nowrap; }
+  .today-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1.5px solid var(--ink); z-index: 3; }
+  .today-label { position: absolute; top: -18px; font-size: 10.5px; font-weight: 600; color: var(--ink); transform: translateX(-50%); white-space: nowrap; }
+  .plot { position: relative; margin-left: 190px; }
+  .track { position: relative; height: 58px; border-bottom: 1px solid var(--paper-line); }
+  .track .today-line { top: 0; bottom: 0; }
+  .rowlabel { position: absolute; left: -190px; top: 0; width: 178px; height: 100%; display: flex; align-items: center; font-size: 13px; font-weight: 500; padding-right: 8px; line-height: 1.3; }
+  .bar { position: absolute; height: 13px; border-radius: 3px; }
+  .bar.plan { top: 10px; background: var(--plan-fill); border: 1.5px dashed var(--plan); }
+  .bar.actual { top: 32px; border: 1.5px solid var(--actual-ok); background: var(--actual-fill-ok); }
+  .bar.actual.late { border-color: var(--actual-late); background: var(--actual-fill-late); }
+  .bar.actual.unplanned { border-color: var(--unplanned); background: var(--unplanned-fill); }
+  .bar.actual .stripe { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, currentColor 0 3px, transparent 3px 7px); opacity: 0.18; border-radius: 2px; }
+  .revised-mark { position: absolute; top: 8px; width: 0; height: 17px; border-left: 2px solid var(--revised); }
+  .revised-mark::after { content: 'orig. end'; position: absolute; top: -14px; left: 3px; font-size: 9.5px; color: var(--revised); white-space: nowrap; }
+  .plan-days-tag { position: absolute; top: -4px; font-size: 9.5px; font-weight: 600; color: var(--plan); white-space: nowrap; }
+  .drift-tag { position: absolute; top: 32px; font-size: 10.5px; font-weight: 600; padding: 1px 6px; border-radius: 999px; transform: translateY(-1px); white-space: nowrap; }
+  .drift-tag.late { color: var(--actual-late); background: var(--actual-fill-late); }
+  .drift-tag.ok { color: var(--actual-ok); background: var(--actual-fill-ok); }
+  .drift-tag.unplanned { color: var(--unplanned); background: var(--unplanned-fill); }
+
+  .empty { padding: 40px 10px; text-align: center; color: var(--ink-soft); font-size: 14px; }
+
+  /* --- milestones --- */
+  .track.milestone-track { height: 92px; }
+  .milestone-diamond {
+    position: absolute; width: 13px; height: 13px;
+    transform: translate(-50%, -50%) rotate(45deg); border-radius: 2px;
+  }
+  .milestone-diamond.plan { background: var(--plan-fill); border: 1.5px dashed var(--plan); z-index: 2; }
+  .milestone-diamond.actual { border: 1.5px solid var(--actual-ok); background: var(--actual-fill-ok); z-index: 3; }
+  .milestone-diamond.actual.late { border-color: var(--actual-late); background: var(--actual-fill-late); }
+  .milestone-diamond.actual.overdue { border: 1.5px dashed var(--actual-late); background: transparent; }
+  .milestone-connector { position: absolute; height: 1px; background: var(--border); }
+  .milestone-drift { position: absolute; font-size: 10.5px; font-weight: 600; padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+  .milestone-drift.late { color: var(--actual-late); background: var(--actual-fill-late); }
+  .milestone-drift.ok { color: var(--actual-ok); background: var(--actual-fill-ok); }
+  .milestone-drift.pending { color: var(--ink-soft); background: var(--paper-line); }
+  .milestone-name-label {
+    position: absolute; font-size: 11.5px; font-weight: 600; color: var(--ink);
+    white-space: nowrap; background: var(--card); padding: 0 4px; border-radius: 3px; z-index: 4;
+  }
+  .section-divider { margin: 22px 0 22px; border: none; border-top: 1px solid var(--border); }
+
+  /* --- all-projects overview --- */
+  .portfolio-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-bottom: 22px;
+  }
+  .portfolio-stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .portfolio-stat .num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600; color: var(--ink); line-height: 1.2; }
+  .portfolio-stat .lbl { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .portfolio-stat.warn .num { color: var(--actual-late); }
+
+  .project-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 16px;
+  }
+  .project-ov-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; min-width: 0; /* allow children to shrink/truncate instead of overflowing */
+    display: flex; flex-direction: column;
+  }
+  .project-ov-card .ov-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 12px;
+  }
+  .project-ov-card .ov-title {
+    font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .project-ov-card .ov-open {
+    flex: none; font-size: 12px; color: var(--ink-soft); background: none; border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 10px; cursor: pointer; white-space: nowrap;
+  }
+  .project-ov-card .ov-open:hover { color: var(--ink); border-color: var(--ink); }
+
+  .ov-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .ov-stats-row .cell { text-align: center; padding: 6px 2px; border-radius: 6px; background: var(--paper); min-width: 0; }
+  .ov-stats-row .cell .n { font-size: 16px; font-weight: 600; color: var(--ink); }
+  .ov-stats-row .cell .l { font-size: 10px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ov-stats-row .cell.c-late .n { color: var(--actual-late); }
+  .ov-stats-row .cell.c-ok .n { color: var(--actual-ok); }
+  .ov-stats-row .cell.c-unplanned .n { color: var(--unplanned); }
+
+  .ov-health-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--paper-line); margin-bottom: 14px; }
+  .ov-health-bar span { height: 100%; }
+  .ov-health-bar .seg-ok { background: var(--actual-ok); }
+  .ov-health-bar .seg-late { background: var(--actual-late); }
+  .ov-health-bar .seg-unplanned { background: var(--unplanned); }
+  .ov-health-bar .seg-pending { background: var(--border); }
+
+  .ov-attention-label { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 6px; }
+  .ov-attention-list {
+    max-height: 168px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+    padding-right: 4px; /* room for scrollbar so text never sits under it */
+  }
+  .ov-attention-item {
+    display: flex; align-items: center; gap: 8px; font-size: 12.5px;
+    padding: 5px 8px; border-radius: 6px; background: var(--paper); min-width: 0;
+  }
+  .ov-attention-item .ai-name {
+    flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink);
+  }
+  .ov-attention-item .ai-chip {
+    flex: none; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+  }
+  .ov-attention-item .ai-chip.late { color: var(--actual-late); background: var(--actual-fill-late); }
+  .ov-attention-item .ai-chip.unplanned { color: var(--unplanned); background: var(--unplanned-fill); }
+  .ov-empty-note { font-size: 12.5px; color: var(--ink-soft); padding: 10px 0 2px; }
+  .ov-next-ms { font-size: 12px; color: var(--ink-soft); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .ov-next-ms b { color: var(--ink); font-weight: 600; }
+  .ov-attention-item .ai-chip.pending { color: var(--ink-soft); background: var(--paper-line); }
+  .ov-attention-item .ai-type-chip {
+    flex: none; width: 19px; height: 19px; border-radius: 5px; font-size: 9.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ov-attention-item .ai-type-chip.customer { background: var(--plan-fill); color: var(--plan); }
+  .ov-attention-item .ai-type-chip.project { background: var(--paper-line); color: var(--ink-soft); }
+  .ov-sub { color: var(--ink-soft); font-weight: 400; font-size: 11px; margin-left: 5px; }
+  .ov-section-gap { margin-top: 14px; }
+
+  footer { margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  footer button { background: transparent; color: var(--ink-soft); border: 1px solid var(--border); padding: 7px 12px; }
+  footer button:hover { color: var(--ink); border-color: var(--ink); }
+
+  .print-only { display: none; }
+  @page { margin: 14mm 12mm; }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    :root {
+      --paper: #ffffff !important; --paper-line: rgba(34,58,68,0.08) !important;
+      --ink: #1c2b33 !important; --ink-soft: #52646c !important;
+      --plan: #2c5f7c !important; --plan-fill: rgba(44,95,124,0.12) !important;
+      --revised: #8a5a2c !important;
+      --actual-late: #c1440e !important; --actual-ok: #2f7d5a !important;
+      --actual-fill-late: rgba(193,68,14,0.16) !important; --actual-fill-ok: rgba(47,125,90,0.16) !important;
+      --unplanned: #6b4fa8 !important; --unplanned-fill: rgba(107,79,168,0.16) !important;
+      --card: #ffffff !important; --border: rgba(28,43,51,0.18) !important;
+    }
+    body { background: white !important; background-image: none !important; }
+    .eyebrow, .sub, .project-tabs, footer { display: none; }
+    .legend { margin-top: 8px; margin-bottom: 4px; }
+    .card { display: none; }
+    .card.timeline-card { display: block; border: none; padding: 0; }
+    h1 { display: none; }
+    .print-only { display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 28px; color: var(--ink); letter-spacing: -0.01em; margin: 0 0 20px; }
+    .milestone-name-label { border: 1px solid var(--border); }
+    .chart-scroll { overflow-x: visible !important; }
+    .chart-inner { min-width: 0 !important; width: 100% !important; }
+    .tick.tick-hide-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Roadmap review</p>
+    <h1>Plan vs. actual</h1>
+    <p class="sub">Keep a separate view per project. Each epic carries a baseline plan, a revised commitment, what actually happened, and a short description of the work.</p>
+    <p class="print-only" id="print-project-name"></p>
+    <div class="legend">
+      <div class="legend-item"><span class="swatch plan"></span>Planned</div>
+      <div class="legend-item"><span class="swatch revised"></span>Original plan end (when revised)</div>
+      <div class="legend-item"><span class="swatch ok"></span>Actual — on/ahead of plan</div>
+      <div class="legend-item"><span class="swatch late"></span>Actual — behind plan</div>
+      <div class="legend-item"><span class="swatch unplanned"></span>Unplanned work</div>
+      <div class="legend-item">◇ Planned milestone &nbsp;/&nbsp; ◆ Actual milestone</div>
+    </div>
+  </header>
+
+  <div class="tabs-row">
+    <button class="overview-toggle" id="overview-toggle-btn">📊 All-projects overview</button>
+    <div class="project-tabs" id="project-tabs"></div>
+  </div>
+
+  <div id="overview-view"></div>
+
+  <div id="project-view">
+  <div class="card form-card">
+    <h2 id="form-title">Add an epic</h2>
+    <p class="tip" id="form-hint">Revised end date defaults to the plan end date — edit it any time the commitment changes.</p>
+
+    <div class="form-section">
+      <p class="form-section-label">Epic &amp; plan</p>
+      <div class="form-grid">
+        <div class="field">
+          <label for="f-name">Epic / milestone</label>
+          <input id="f-name" type="text" placeholder="e.g. Payments v2">
+        </div>
+        <div class="field">
+          <label for="f-plan-start">Plan start date</label>
+          <input id="f-plan-start" type="date">
+        </div>
+        <div class="field">
+          <label for="f-plan-end">Plan end date</label>
+          <input id="f-plan-end" type="date">
+        </div>
+        <div class="field revised">
+          <label for="f-revised-end">Revised end date</label>
+          <input id="f-revised-end" type="date">
+        </div>
+      </div>
+      <div class="form-grid full-row">
+        <div class="field">
+          <label for="f-description">Description</label>
+          <textarea id="f-description" rows="2" placeholder="What this epic covers, scope notes, links to tickets…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <p class="form-section-label">Actuals</p>
+      <div class="form-grid four">
+        <div class="field">
+          <label for="f-actual-start">Actual start date</label>
+          <input id="f-actual-start" type="date">
+        </div>
+        <div class="field">
+          <label for="f-actual-end">Actual end date</label>
+          <input id="f-actual-end" type="date">
+        </div>
+        <div class="field">
+          <label for="f-actual-complete">Actual complete date</label>
+          <input id="f-actual-complete" type="date">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-add" id="add-btn">Add to roadmap</button>
+      <button class="btn-plain" id="cancel-edit-btn" style="display:none;">Cancel</button>
+    </div>
+    <p class="hint">Leave all three actual dates blank for work that hasn't started yet. Leave just actual end / actual complete blank while it's running — the chart draws to today with a hatched edge until then. For unplanned work that was never in the original plan, leave both plan dates blank — it'll show on the timeline as unplanned, with no variance against a baseline that never existed.</p>
+  </div>
+
+  <div class="card">
+    <h2>Saved epics</h2>
+    <p class="tip">Man-days = plan start → revised end, working days only. Variance = actual working days minus planned working days (positive means it took longer than planned).</p>
+    <div class="table-scroll">
+      <table class="epics">
+        <thead>
+          <tr>
+            <th>Epic</th>
+            <th>Description</th>
+            <th>Plan start</th>
+            <th>Plan end</th>
+            <th>Revised end</th>
+            <th>Actual start</th>
+            <th>Actual end</th>
+            <th>Actual complete</th>
+            <th>Man-days</th>
+            <th>Variance</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 id="m-form-title">Milestones</h2>
+    <p class="tip" id="m-form-hint">Point-in-time markers — a go-live date, a sign-off, a launch. Leave "actual date" blank until it's reached.</p>
+
+    <div class="form-grid five" style="margin-bottom: 14px;">
+      <div class="field">
+        <label for="m-name">Milestone</label>
+        <input id="m-name" type="text" placeholder="e.g. Go-live">
+      </div>
+      <div class="field">
+        <label for="m-category">Type</label>
+        <select id="m-category">
+          <option value="project">Project milestone</option>
+          <option value="customer">Customer milestone</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="m-planned">Planned date</label>
+        <input id="m-planned" type="date">
+      </div>
+      <div class="field">
+        <label for="m-actual">Actual date (blank = not yet reached)</label>
+        <input id="m-actual" type="date">
+      </div>
+      <div class="field">
+        <label for="m-description">Description</label>
+        <input id="m-description" type="text" placeholder="optional note">
+      </div>
+    </div>
+    <div class="form-actions" style="margin-top: 0 0 16px;">
+      <button class="btn-add" id="m-add-btn">Add milestone</button>
+      <button class="btn-plain" id="m-cancel-btn" style="display:none;">Cancel</button>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="table-scroll">
+      <table class="epics">
+        <thead>
+          <tr>
+            <th>Milestone</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Planned date</th>
+            <th>Actual date</th>
+            <th>Variance</th>
+            <th>Time left</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="milestone-rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card timeline-card">
+    <h2>Timeline</h2>
+    <div class="chart-scroll">
+      <div class="chart-inner" id="chart"></div>
+    </div>
+  </div>
+  </div><!-- /project-view -->
+
+  <footer>
+    <span id="status-msg">Saved to this browser automatically. Export to move a project's epics into another one.</span>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button id="export-btn">Export to Excel</button>
+      <button id="import-btn">Import from Excel</button>
+      <input type="file" id="import-file" accept=".xlsx" style="display:none;">
+      <button id="export-pptx-btn">Export to PowerPoint</button>
+      <button id="print-btn">Print / save as PDF</button>
+      <button id="reset-btn">Clear this project's data</button>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY_V3 = 'roadmap-plan-vs-actual-v3';
+  var STORAGE_KEY_V2 = 'roadmap-plan-vs-actual-v2';
+
+  function seedEpics() {
+    return [
+      { id: 1, name: 'Payments v2', description: 'Rebuild checkout on the new payments gateway; covers card + wallet flows.', planStart: '2026-06-01', planEnd: '2026-08-15', revisedEnd: '2026-08-25', actualStart: '2026-06-08', actualEnd: '2026-09-01', actualComplete: '2026-09-05' },
+      { id: 2, name: 'Onboarding redesign', description: 'New first-run flow to cut signup drop-off.', planStart: '2026-07-01', planEnd: '2026-09-01', revisedEnd: '2026-09-01', actualStart: '2026-07-01', actualEnd: '2026-08-18', actualComplete: '2026-08-20' },
+      { id: 3, name: 'Mobile push notifications', description: 'Re-engagement pushes for iOS and Android.', planStart: '2026-08-15', planEnd: '2026-10-01', revisedEnd: '2026-10-01', actualStart: '2026-08-20', actualEnd: null, actualComplete: null }
+    ];
+  }
+
+  function seedMilestones() {
+    return [
+      { id: 1, name: 'Beta launch', category: 'customer', description: 'Feature-complete build to the pilot customer group.', plannedDate: '2026-08-15', actualDate: '2026-08-22' },
+      { id: 2, name: 'Go-live', category: 'project', description: 'General availability.', plannedDate: '2026-10-01', actualDate: null }
+    ];
+  }
+
+  function seedState() {
+    return { projects: [{ id: 1, name: 'Product Roadmap', epics: seedEpics(), milestones: seedMilestones() }], activeId: 1 };
+  }
+
+  function normalize(st) {
+    st.projects.forEach(function (p) {
+      if (!p.epics) p.epics = [];
+      if (!p.milestones) p.milestones = [];
+      p.milestones.forEach(function (ms) { if (!ms.category) ms.category = 'project'; });
+    });
+    return st;
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_V3);
+      if (raw) return normalize(JSON.parse(raw));
+      var old = localStorage.getItem(STORAGE_KEY_V2);
+      if (old) {
+        var oldEpics = JSON.parse(old).map(function (e) {
+          if (e.description === undefined) e.description = '';
+          return e;
+        });
+        var migrated = { projects: [{ id: 1, name: 'My Roadmap', epics: oldEpics, milestones: [] }], activeId: 1 };
+        return migrated;
+      }
+    } catch (e) { /* storage unavailable, fall through */ }
+    return seedState();
+  }
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY_V3, JSON.stringify(state));
+      setStatus('Saved to this browser automatically.');
+    } catch (e) {
+      setStatus('Could not save — your changes will be lost on reload.');
+    }
+  }
+  function setStatus(msg) {
+    var el = document.getElementById('status-msg');
+    if (el) el.textContent = msg;
+  }
+
+  var state = load();
+  var nextProjectId = state.projects.reduce(function (m, p) { return Math.max(m, p.id); }, 0) + 1;
+  var nextEpicId = state.projects.reduce(function (m, p) {
+    return p.epics.reduce(function (m2, e) { return Math.max(m2, e.id); }, m);
+  }, 0) + 1;
+  var nextMilestoneId = state.projects.reduce(function (m, p) {
+    return p.milestones.reduce(function (m2, ms) { return Math.max(m2, ms.id); }, m);
+  }, 0) + 1;
+  var viewMode = 'project'; // 'project' | 'overview'
+  var editingId = null;
+  var editingMilestoneId = null;
+  var revisedEndTouched = false;
+
+  function activeProject() {
+    return state.projects.find(function (p) { return p.id === state.activeId; }) || state.projects[0];
+  }
+
+  function parseDate(s) {
+    if (!s) return null;
+    var parts = s.split('-');
+    return new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]));
+  }
+  function fmt(d) {
+    if (!d) return '—';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  }
+  function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+  var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function todayUTC() { var t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); }
+
+  function workdays(start, end) {
+    if (!start || !end) return null;
+    var sign = 1, s = start, e = end;
+    if (e < s) { var tmp = s; s = e; e = tmp; sign = -1; }
+    var count = 0;
+    var cur = new Date(s.getTime());
+    while (cur <= e) {
+      var dow = cur.getUTCDay();
+      if (dow !== 0 && dow !== 6) count++;
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+    return count * sign;
+  }
+
+  function effectiveRevisedEnd(it) { return it.revisedEnd || it.planEnd; }
+  function effectiveActualFinish(it) {
+    if (it.actualComplete) return { date: it.actualComplete, ongoing: false };
+    if (it.actualEnd) return { date: it.actualEnd, ongoing: false };
+    if (it.actualStart) return { date: null, ongoing: true };
+    return { date: null, ongoing: false };
+  }
+  function manDaysFor(it) {
+    var ps = parseDate(it.planStart), re = parseDate(effectiveRevisedEnd(it));
+    return workdays(ps, re);
+  }
+  function varianceFor(it) {
+    var md = manDaysFor(it);
+    if (md === null) return null;
+    var as = parseDate(it.actualStart);
+    if (!as) return null;
+    var fin = effectiveActualFinish(it);
+    var endDate = fin.date ? parseDate(fin.date) : (fin.ongoing ? todayUTC() : null);
+    if (!endDate) return null;
+    var actualMd = workdays(as, endDate);
+    return { value: actualMd - md, ongoing: fin.ongoing };
+  }
+  // Working days left until the revised end date (negative = already past it).
+  function remainingWorkdaysFor(it) {
+    var re = parseDate(effectiveRevisedEnd(it));
+    if (!re) return null;
+    return workdays(todayUTC(), re);
+  }
+
+  function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  function render() {
+    renderTabs();
+    var toggleBtn = document.getElementById('overview-toggle-btn');
+    var projectViewEl = document.getElementById('project-view');
+    var overviewEl = document.getElementById('overview-view');
+    if (viewMode === 'overview') {
+      projectViewEl.style.display = 'none';
+      overviewEl.style.display = 'block';
+      toggleBtn.classList.add('active');
+      toggleBtn.textContent = '← Back to project';
+      renderOverview();
+    } else {
+      projectViewEl.style.display = '';
+      overviewEl.style.display = 'none';
+      toggleBtn.classList.remove('active');
+      toggleBtn.textContent = '📊 All-projects overview';
+      renderRows();
+      renderMilestoneRows();
+      renderChart();
+    }
+  }
+
+  document.getElementById('overview-toggle-btn').addEventListener('click', function () {
+    viewMode = (viewMode === 'overview') ? 'project' : 'overview';
+    render();
+  });
+
+  // One project's worth of rolled-up numbers for the overview dashboard —
+  // epic/milestone status counts plus a flat "needs attention" list, each
+  // item pre-truncated to a name + a short chip so nothing has to overlap
+  // regardless of how long the name or how many items there are.
+  function computeProjectStats(proj) {
+    var ok = 0, late = 0, unplanned = 0, pending = 0;
+    var attention = [];
+    proj.epics.forEach(function (it) {
+      if (!it.planStart) {
+        unplanned++;
+        if (it.actualStart) attention.push({ name: it.name, chipText: 'Unplanned', chipClass: 'unplanned', sortKey: 1 });
+        return;
+      }
+      if (!it.actualStart) { pending++; return; }
+      var v = varianceFor(it);
+      if (v && v.value > 0) {
+        late++;
+        attention.push({ name: it.name, chipText: '+' + v.value + ' md' + (v.ongoing ? ' so far' : ''), chipClass: 'late', sortKey: 100 + v.value });
+      } else {
+        ok++;
+      }
+    });
+
+    var msOverdueCount = 0, nextUpcoming = null;
+    proj.milestones.forEach(function (ms) {
+      var v = milestoneVariance(ms);
+      if (!v) return;
+      if (v.pending && v.overdue) {
+        msOverdueCount++;
+        attention.push({ name: ms.name, chipText: v.value + 'd overdue', chipClass: 'late', sortKey: 1000 + v.value });
+      } else if (v.pending && !v.overdue) {
+        if (!nextUpcoming || v.daysLeft < nextUpcoming.daysLeft) nextUpcoming = { name: ms.name, daysLeft: v.daysLeft };
+      }
+    });
+
+    attention.sort(function (a, b) { return b.sortKey - a.sortKey; });
+
+    // Full epic list in timeline order (plan start, or actual start for
+    // unplanned work), each pre-reduced to a name + date range + one status
+    // chip — so the overview can show everything without opening the project.
+    var epicsSorted = proj.epics.map(function (it) {
+      var ps = parseDate(it.planStart);
+      var as = parseDate(it.actualStart);
+      var sortDate = ps || as;
+      var unplannedEpic = !it.planStart;
+      var chipText, chipClass;
+      if (unplannedEpic) {
+        chipClass = 'unplanned'; chipText = 'Unplanned';
+      } else if (!it.actualStart) {
+        var daysToStart = workdays(todayUTC(), ps);
+        if (daysToStart > 0) { chipClass = 'pending'; chipText = 'Starts in ' + daysToStart + 'd'; }
+        else if (daysToStart === 0) { chipClass = 'pending'; chipText = 'Starts today'; }
+        else { chipClass = 'late'; chipText = Math.abs(daysToStart) + 'd overdue to start'; }
+      } else {
+        var v = varianceFor(it);
+        if (v) {
+          if (v.value > 0) { chipClass = 'late'; chipText = '+' + v.value + ' md' + (v.ongoing ? ' so far' : ''); }
+          else { chipClass = 'ok'; chipText = v.ongoing ? 'On track' : (v.value === 0 ? 'On plan' : Math.abs(v.value) + ' md early'); }
+          if (v.ongoing) {
+            var remEpic = remainingWorkdaysFor(it);
+            if (remEpic !== null) {
+              chipText += remEpic > 0 ? (' · ' + remEpic + 'd left') : (remEpic === 0 ? ' · due today' : ' · ' + Math.abs(remEpic) + 'd overdue');
+            }
+          }
+        } else { chipClass = 'pending'; chipText = '—'; }
+      }
+      var dateRangeText;
+      if (unplannedEpic) {
+        dateRangeText = as ? (fmt(as) + ' – ' + (it.actualComplete ? fmt(parseDate(it.actualComplete)) : (it.actualEnd ? fmt(parseDate(it.actualEnd)) : 'ongoing'))) : '—';
+      } else {
+        dateRangeText = fmt(ps) + ' – ' + fmt(parseDate(effectiveRevisedEnd(it)));
+      }
+      return { name: it.name, sortDate: sortDate, dateRangeText: dateRangeText, chipText: chipText, chipClass: chipClass };
+    }).sort(function (a, b) { return (a.sortDate ? a.sortDate.getTime() : 0) - (b.sortDate ? b.sortDate.getTime() : 0); });
+
+    // Full milestone list, both categories together, in planned-date order.
+    var milestonesSorted = proj.milestones.map(function (ms) {
+      var planned = parseDate(ms.plannedDate);
+      var v = milestoneVariance(ms);
+      var chipText, chipClass;
+      if (!v) { chipClass = 'pending'; chipText = '—'; }
+      else if (v.pending && v.overdue) { chipClass = 'late'; chipText = v.value + 'd overdue'; }
+      else if (v.pending && !v.overdue) { chipClass = 'pending'; chipText = v.daysLeft === 0 ? 'Due today' : (v.daysLeft + 'd left'); }
+      else { chipClass = v.value > 0 ? 'late' : (v.value < 0 ? 'ok' : 'pending'); chipText = v.value === 0 ? 'On time' : (v.value > 0 ? '+' + v.value + 'd late' : Math.abs(v.value) + 'd early'); }
+      return {
+        name: ms.name, category: (ms.category === 'customer') ? 'customer' : 'project',
+        sortDate: planned, dateText: planned ? fmt(planned) : '—', chipText: chipText, chipClass: chipClass
+      };
+    }).sort(function (a, b) { return (a.sortDate ? a.sortDate.getTime() : 0) - (b.sortDate ? b.sortDate.getTime() : 0); });
+
+    return {
+      epicsTotal: proj.epics.length, milestonesTotal: proj.milestones.length,
+      ok: ok, late: late, unplanned: unplanned, pending: pending,
+      msOverdueCount: msOverdueCount, nextUpcoming: nextUpcoming, attention: attention,
+      epicsSorted: epicsSorted, milestonesSorted: milestonesSorted
+    };
+  }
+
+  function renderOverview() {
+    var el = document.getElementById('overview-view');
+    var allStats = state.projects.map(function (p) { return { proj: p, stats: computeProjectStats(p) }; });
+
+    var totalEpics = 0, totalLate = 0, totalUnplanned = 0, totalMsOverdue = 0;
+    allStats.forEach(function (x) {
+      totalEpics += x.stats.epicsTotal;
+      totalLate += x.stats.late;
+      totalUnplanned += x.stats.unplanned;
+      totalMsOverdue += x.stats.msOverdueCount;
+    });
+
+    function statChip(num, label, warn) {
+      return '<div class="portfolio-stat' + (warn ? ' warn' : '') + '"><div class="num">' + num + '</div><div class="lbl">' + escapeHtml(label) + '</div></div>';
+    }
+
+    function attentionItemHtml(a) {
+      return '<div class="ov-attention-item"><span class="ai-name" title="' + escapeHtml(a.name) + '">' + escapeHtml(a.name) + '</span><span class="ai-chip ' + a.chipClass + '">' + escapeHtml(a.chipText) + '</span></div>';
+    }
+    function epicLineHtml(e) {
+      return '<div class="ov-attention-item"><span class="ai-name" title="' + escapeHtml(e.name) + ' (' + escapeHtml(e.dateRangeText) + ')">' +
+        escapeHtml(e.name) + '<span class="ov-sub">' + escapeHtml(e.dateRangeText) + '</span></span>' +
+        '<span class="ai-chip ' + e.chipClass + '">' + escapeHtml(e.chipText) + '</span></div>';
+    }
+    function msLineHtml(m) {
+      return '<div class="ov-attention-item">' +
+        '<span class="ai-type-chip ' + m.category + '" title="' + (m.category === 'customer' ? 'Customer milestone' : 'Project milestone') + '">' + (m.category === 'customer' ? 'C' : 'P') + '</span>' +
+        '<span class="ai-name" title="' + escapeHtml(m.name) + ' (' + escapeHtml(m.dateText) + ')">' + escapeHtml(m.name) + '<span class="ov-sub">' + escapeHtml(m.dateText) + '</span></span>' +
+        '<span class="ai-chip ' + m.chipClass + '">' + escapeHtml(m.chipText) + '</span></div>';
+    }
+
+    function projectCardHtml(x) {
+      var p = x.proj, s = x.stats;
+      var total = s.ok + s.late + s.unplanned + s.pending || 1;
+      var pctOk = (s.ok / total) * 100, pctLate = (s.late / total) * 100, pctUn = (s.unplanned / total) * 100, pctPending = (s.pending / total) * 100;
+
+      var attentionHtml = s.attention.length
+        ? s.attention.slice(0, 30).map(attentionItemHtml).join('')
+        : '<div class="ov-empty-note">✅ Nothing needs attention right now.</div>';
+
+      var nextMsHtml = s.nextUpcoming
+        ? ('<div class="ov-next-ms">Next milestone: <b>' + escapeHtml(s.nextUpcoming.name) + '</b> — ' + (s.nextUpcoming.daysLeft === 0 ? 'due today' : s.nextUpcoming.daysLeft + 'd left') + '</div>')
+        : '';
+
+      return '' +
+        '<div class="project-ov-card">' +
+        '<div class="ov-head"><div class="ov-title" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</div>' +
+        '<button class="ov-open" data-pid="' + p.id + '">Open →</button></div>' +
+        '<div class="ov-stats-row">' +
+        '<div class="cell"><div class="n">' + s.epicsTotal + '</div><div class="l">Epics</div></div>' +
+        '<div class="cell c-ok"><div class="n">' + s.ok + '</div><div class="l">On track</div></div>' +
+        '<div class="cell c-late"><div class="n">' + s.late + '</div><div class="l">Behind</div></div>' +
+        '<div class="cell c-unplanned"><div class="n">' + s.unplanned + '</div><div class="l">Unplanned</div></div>' +
+        '</div>' +
+        '<div class="ov-health-bar">' +
+        (pctOk ? '<span class="seg-ok" style="width:' + pctOk + '%"></span>' : '') +
+        (pctLate ? '<span class="seg-late" style="width:' + pctLate + '%"></span>' : '') +
+        (pctUn ? '<span class="seg-unplanned" style="width:' + pctUn + '%"></span>' : '') +
+        (pctPending ? '<span class="seg-pending" style="width:' + pctPending + '%"></span>' : '') +
+        '</div>' +
+        '<div class="ov-attention-label">Needs attention (' + s.attention.length + ')</div>' +
+        '<div class="ov-attention-list">' + attentionHtml + '</div>' +
+        nextMsHtml +
+        '<div class="ov-attention-label ov-section-gap">Epics by date (' + s.epicsSorted.length + ')</div>' +
+        '<div class="ov-attention-list">' + (s.epicsSorted.length ? s.epicsSorted.map(epicLineHtml).join('') : '<div class="ov-empty-note">No epics yet.</div>') + '</div>' +
+        '<div class="ov-attention-label ov-section-gap">Milestones — Customer &amp; Project (' + s.milestonesSorted.length + ')</div>' +
+        '<div class="ov-attention-list">' + (s.milestonesSorted.length ? s.milestonesSorted.map(msLineHtml).join('') : '<div class="ov-empty-note">No milestones yet.</div>') + '</div>' +
+        '</div>';
+    }
+
+    el.innerHTML =
+      '<div class="portfolio-stats">' +
+      statChip(state.projects.length, 'Projects') +
+      statChip(totalEpics, 'Total epics') +
+      statChip(totalLate, 'Epics behind', totalLate > 0) +
+      statChip(totalUnplanned, 'Unplanned epics') +
+      statChip(totalMsOverdue, 'Milestones overdue', totalMsOverdue > 0) +
+      '</div>' +
+      '<div class="project-grid">' + allStats.map(projectCardHtml).join('') + '</div>';
+
+    el.querySelectorAll('.ov-open').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        state.activeId = Number(btn.getAttribute('data-pid'));
+        viewMode = 'project';
+        cancelEdit();
+        save();
+        render();
+      });
+    });
+  }
+
+  function renderTabs() {
+    var nameEl = document.getElementById('print-project-name');
+    if (nameEl) nameEl.textContent = activeProject().name + ' Timeline';
+
+    var el = document.getElementById('project-tabs');
+    el.innerHTML = '';
+    state.projects.forEach(function (p) {
+      var tab = document.createElement('div');
+      tab.className = 'tab' + (p.id === state.activeId ? ' active' : '');
+
+      var nameBtn = document.createElement('button');
+      nameBtn.className = 'tab-name';
+      nameBtn.textContent = p.name;
+      nameBtn.onclick = function () {
+        state.activeId = p.id;
+        viewMode = 'project';
+        cancelEdit();
+        save();
+        render();
+      };
+      tab.appendChild(nameBtn);
+
+      var renameBtn = document.createElement('button');
+      renameBtn.className = 'tab-icon';
+      renameBtn.title = 'Rename project';
+      renameBtn.textContent = '✎';
+      renameBtn.onclick = function () {
+        var next = prompt('Rename project', p.name);
+        if (next && next.trim()) {
+          p.name = next.trim();
+          save();
+          render();
+        }
+      };
+      tab.appendChild(renameBtn);
+
+      if (state.projects.length > 1) {
+        var delBtn = document.createElement('button');
+        delBtn.className = 'tab-icon';
+        delBtn.title = 'Delete project';
+        delBtn.textContent = '×';
+        delBtn.onclick = function () {
+          if (confirm('Delete "' + p.name + '" and all its epics? This can\'t be undone.')) {
+            state.projects = state.projects.filter(function (x) { return x.id !== p.id; });
+            if (state.activeId === p.id) state.activeId = state.projects[0].id;
+            cancelEdit();
+            save();
+            render();
+          }
+        };
+        tab.appendChild(delBtn);
+      }
+
+      el.appendChild(tab);
+    });
+
+    var addBtn = document.createElement('button');
+    addBtn.className = 'tab-add';
+    addBtn.textContent = '+ New project';
+    addBtn.onclick = function () {
+      var name = prompt('Name this project view', 'New project');
+      if (name && name.trim()) {
+        var p = { id: nextProjectId++, name: name.trim(), epics: [], milestones: [] };
+        state.projects.push(p);
+        state.activeId = p.id;
+        viewMode = 'project';
+        cancelEdit();
+        save();
+        render();
+      }
+    };
+    el.appendChild(addBtn);
+  }
+
+  function renderRows() {
+    var el = document.getElementById('rows');
+    el.innerHTML = '';
+    var epics = activeProject().epics;
+    epics.forEach(function (it) {
+      var tr = document.createElement('tr');
+      if (editingId === it.id) tr.className = 'editing';
+
+      var md = manDaysFor(it);
+      var v = varianceFor(it);
+      var mdCell = (md === null) ? '<span class="metric-neutral">—</span>' : md + ' md';
+      var vCell = '<span class="metric-neutral">—</span>';
+      if (v !== null) {
+        var cls = v.value > 0 ? 'metric-late' : (v.value < 0 ? 'metric-ok' : 'metric-neutral');
+        var sign = v.value > 0 ? '+' : '';
+        vCell = '<span class="' + cls + '">' + sign + v.value + ' md' + (v.ongoing ? ' (so far)' : '') + '</span>';
+      }
+
+      var epicNameHtml = escapeHtml(it.name);
+      if (!it.planStart) epicNameHtml += ' <span style="color: var(--unplanned); font-weight: 600;">(unplanned)</span>';
+
+      tr.innerHTML =
+        '<td class="name-cell">' + epicNameHtml + '</td>' +
+        '<td class="desc-cell" title="' + escapeHtml(it.description || '') + '">' + escapeHtml(it.description || '—') + '</td>' +
+        '<td>' + fmt(parseDate(it.planStart)) + '</td>' +
+        '<td>' + fmt(parseDate(it.planEnd)) + '</td>' +
+        '<td>' + fmt(parseDate(effectiveRevisedEnd(it))) + '</td>' +
+        '<td>' + fmt(parseDate(it.actualStart)) + '</td>' +
+        '<td>' + (it.actualEnd ? fmt(parseDate(it.actualEnd)) : '—') + '</td>' +
+        '<td>' + (it.actualComplete ? fmt(parseDate(it.actualComplete)) : (it.actualStart ? 'In progress' : '—')) + '</td>' +
+        '<td>' + mdCell + '</td>' +
+        '<td>' + vCell + '</td>';
+
+      var actionsTd = document.createElement('td');
+      var actions = document.createElement('div');
+      actions.className = 'row-actions';
+      var editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = function () { startEdit(it.id); };
+      var delBtn = document.createElement('button');
+      delBtn.className = 'danger';
+      delBtn.textContent = 'Remove';
+      delBtn.onclick = function () {
+        var proj = activeProject();
+        proj.epics = proj.epics.filter(function (x) { return x.id !== it.id; });
+        if (editingId === it.id) cancelEdit();
+        save();
+        render();
+      };
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      actionsTd.appendChild(actions);
+      tr.appendChild(actionsTd);
+
+      el.appendChild(tr);
+    });
+  }
+
+  function milestoneVariance(ms) {
+    var planned = parseDate(ms.plannedDate);
+    if (!planned) return null;
+    var today = todayUTC();
+    if (!ms.actualDate) {
+      if (today > planned) return { value: daysBetween(planned, today), pending: true, overdue: true };
+      return { value: null, pending: true, overdue: false, daysLeft: daysBetween(today, planned) };
+    }
+    var actual = parseDate(ms.actualDate);
+    return { value: daysBetween(planned, actual), pending: false, overdue: false };
+  }
+
+  function renderMilestoneRows() {
+    var el = document.getElementById('milestone-rows');
+    el.innerHTML = '';
+    var milestones = activeProject().milestones;
+    milestones.forEach(function (ms) {
+      var tr = document.createElement('tr');
+      if (editingMilestoneId === ms.id) tr.className = 'editing';
+
+      var v = milestoneVariance(ms);
+      var vCell = '<span class="metric-neutral">—</span>';
+      if (v) {
+        if (v.pending && !v.overdue) vCell = '<span class="metric-neutral">Not yet reached</span>';
+        else if (v.pending && v.overdue) vCell = '<span class="metric-late">' + v.value + 'd overdue</span>';
+        else {
+          var cls = v.value > 0 ? 'metric-late' : (v.value < 0 ? 'metric-ok' : 'metric-neutral');
+          var sign = v.value > 0 ? '+' : '';
+          vCell = '<span class="' + cls + '">' + (v.value === 0 ? 'On time' : sign + v.value + 'd') + '</span>';
+        }
+      }
+
+      var leftCell = '<span class="metric-neutral">—</span>';
+      if (v && v.pending) {
+        if (v.overdue) {
+          leftCell = '<span class="metric-late">' + v.value + 'd overdue</span>';
+        } else if (v.daysLeft === 0) {
+          leftCell = '<span class="metric-late">Due today</span>';
+        } else {
+          leftCell = '<span class="metric-ok">' + v.daysLeft + 'd left</span>';
+        }
+      } else if (v && !v.pending) {
+        leftCell = '<span class="metric-neutral">Reached</span>';
+      }
+
+      var nameHtml = escapeHtml(ms.name);
+      if (v && v.pending && v.overdue) {
+        nameHtml += ' <span class="metric-late">(' + v.value + 'd overdue)</span>';
+      }
+
+      tr.innerHTML =
+        '<td class="name-cell">' + nameHtml + '</td>' +
+        '<td>' + (ms.category === 'customer' ? 'Customer' : 'Project') + '</td>' +
+        '<td class="desc-cell" title="' + escapeHtml(ms.description || '') + '">' + escapeHtml(ms.description || '—') + '</td>' +
+        '<td>' + fmt(parseDate(ms.plannedDate)) + '</td>' +
+        '<td>' + (ms.actualDate ? fmt(parseDate(ms.actualDate)) : '—') + '</td>' +
+        '<td>' + vCell + '</td>' +
+        '<td>' + leftCell + '</td>';
+
+      var actionsTd = document.createElement('td');
+      var actions = document.createElement('div');
+      actions.className = 'row-actions';
+      var editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = function () { startEditMilestone(ms.id); };
+      var delBtn = document.createElement('button');
+      delBtn.className = 'danger';
+      delBtn.textContent = 'Remove';
+      delBtn.onclick = function () {
+        var proj = activeProject();
+        proj.milestones = proj.milestones.filter(function (x) { return x.id !== ms.id; });
+        if (editingMilestoneId === ms.id) cancelEditMilestone();
+        save();
+        render();
+      };
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      actionsTd.appendChild(actions);
+      tr.appendChild(actionsTd);
+
+      el.appendChild(tr);
+    });
+  }
+
+  function startEditMilestone(id) {
+    var ms = activeProject().milestones.find(function (x) { return x.id === id; });
+    if (!ms) return;
+    editingMilestoneId = id;
+    document.getElementById('m-name').value = ms.name;
+    document.getElementById('m-category').value = ms.category || 'project';
+    document.getElementById('m-description').value = ms.description || '';
+    document.getElementById('m-planned').value = ms.plannedDate || '';
+    document.getElementById('m-actual').value = ms.actualDate || '';
+    document.getElementById('m-form-title').textContent = 'Edit milestone';
+    document.getElementById('m-add-btn').textContent = 'Save changes';
+    document.getElementById('m-cancel-btn').style.display = 'inline-block';
+    document.getElementById('m-form-hint').textContent = 'Editing "' + ms.name + '" — update the fields and save, or cancel.';
+    document.getElementById('m-name').focus();
+    renderMilestoneRows();
+  }
+  function cancelEditMilestone() {
+    editingMilestoneId = null;
+    ['m-name', 'm-description', 'm-planned', 'm-actual'].forEach(function (id) { document.getElementById(id).value = ''; });
+    document.getElementById('m-category').value = 'project';
+    document.getElementById('m-form-title').textContent = 'Milestones';
+    document.getElementById('m-add-btn').textContent = 'Add milestone';
+    document.getElementById('m-cancel-btn').style.display = 'none';
+    document.getElementById('m-form-hint').textContent = 'Point-in-time markers — a go-live date, a sign-off, a launch. Leave "actual date" blank until it\'s reached.';
+    renderMilestoneRows();
+  }
+
+  document.getElementById('m-cancel-btn').addEventListener('click', cancelEditMilestone);
+  document.getElementById('m-add-btn').addEventListener('click', function () {
+    var name = document.getElementById('m-name').value.trim();
+    var category = document.getElementById('m-category').value || 'project';
+    var planned = document.getElementById('m-planned').value;
+    var actual = document.getElementById('m-actual').value;
+    var description = document.getElementById('m-description').value.trim();
+    if (!name || !planned) {
+      setStatus('Fill in at least the milestone name and planned date.');
+      return;
+    }
+    var record = { name: name, category: category, description: description, plannedDate: planned, actualDate: actual || null };
+    var proj = activeProject();
+    if (editingMilestoneId !== null) {
+      var idx = proj.milestones.findIndex(function (x) { return x.id === editingMilestoneId; });
+      if (idx !== -1) proj.milestones[idx] = Object.assign({ id: editingMilestoneId }, record);
+      cancelEditMilestone();
+    } else {
+      proj.milestones.push(Object.assign({ id: nextMilestoneId++ }, record));
+      ['m-name', 'm-description', 'm-planned', 'm-actual'].forEach(function (id) { document.getElementById(id).value = ''; });
+      document.getElementById('m-category').value = 'project';
+    }
+    save();
+    render();
+    document.getElementById('m-name').focus();
+  });
+
+  function renderChart() {
+    var chart = document.getElementById('chart');
+    chart.innerHTML = '';
+    var epics = activeProject().epics;
+    var milestones = activeProject().milestones;
+
+    if (epics.length === 0 && milestones.length === 0) {
+      chart.innerHTML = '<div class="empty">Nothing in this project yet — add an epic or milestone above to see the timeline.</div>';
+      return;
+    }
+
+    var today = todayUTC();
+    var allDates = [];
+    epics.forEach(function (it) {
+      allDates.push(parseDate(it.planStart), parseDate(it.planEnd), parseDate(effectiveRevisedEnd(it)), parseDate(it.actualStart));
+      var fin = effectiveActualFinish(it);
+      allDates.push(fin.date ? parseDate(fin.date) : (fin.ongoing ? today : null));
+    });
+    milestones.forEach(function (ms) {
+      allDates.push(parseDate(ms.plannedDate));
+      allDates.push(ms.actualDate ? parseDate(ms.actualDate) : null);
+    });
+    allDates.push(today);
+    allDates = allDates.filter(Boolean);
+    var minDate = new Date(Math.min.apply(null, allDates));
+    var maxDate = new Date(Math.max.apply(null, allDates));
+    var rangeDays = Math.max(daysBetween(minDate, maxDate), 14);
+    var pad = Math.max(Math.round(rangeDays * 0.04), 3);
+    minDate = new Date(minDate.getTime() - pad * 86400000);
+    maxDate = new Date(maxDate.getTime() + pad * 86400000);
+    var totalDays = daysBetween(minDate, maxDate);
+    function pct(d) { return (daysBetween(minDate, d) / totalDays) * 100; }
+
+    // Anchors a label to the right of a point normally; once that point is
+    // close enough to the right edge that the label would run off the chart
+    // (or off the printed page), flips it to grow leftward instead.
+    function placeEdgeAware(el, markerPct, gap) {
+      gap = gap || 0;
+      if (markerPct > 78) {
+        el.style.left = (markerPct - gap) + '%';
+        el.style.transform = 'translateX(-100%)';
+      } else {
+        el.style.left = (markerPct + gap) + '%';
+      }
+    }
+
+    // Count how many month ticks the range needs, up front, so we can:
+    // (a) widen the chart on screen enough that every month gets legible
+    //     spacing (the container scrolls horizontally for long ranges), and
+    // (b) thin out the text labels for print/PPTX, where the width is fixed
+    //     and can't scroll — otherwise long ranges overlap into a smear.
+    var tickCount = 0;
+    var _tc = new Date(Date.UTC(minDate.getUTCFullYear(), minDate.getUTCMonth(), 1));
+    if (_tc < minDate) _tc.setUTCMonth(_tc.getUTCMonth() + 1);
+    while (_tc <= maxDate) { tickCount++; _tc.setUTCMonth(_tc.getUTCMonth() + 1); }
+    var monthLabelStride = Math.max(1, Math.ceil(tickCount / 12));
+    chart.style.width = Math.max(760, tickCount * 65 + 190) + 'px';
+
+    var axis = document.createElement('div');
+    axis.className = 'axis';
+    var cursor = new Date(Date.UTC(minDate.getUTCFullYear(), minDate.getUTCMonth(), 1));
+    if (cursor < minDate) cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+    var tickIdx = 0;
+    while (cursor <= maxDate) {
+      var tick = document.createElement('div');
+      tick.className = 'tick' + (tickIdx % monthLabelStride !== 0 ? ' tick-hide-print' : '');
+      tick.style.left = pct(cursor) + '%';
+      tick.textContent = MONTH_NAMES[cursor.getUTCMonth()] + ' ' + cursor.getUTCFullYear();
+      axis.appendChild(tick);
+      cursor = new Date(cursor);
+      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+      tickIdx++;
+    }
+    chart.appendChild(axis);
+
+    var plot = document.createElement('div');
+    plot.className = 'plot';
+    chart.appendChild(plot); // attach now, empty, so every track built into it below can measure real offsets
+
+    // Builds one milestone row (e.g. all "Customer" or all "Project"
+    // milestones) — diamonds, connectors, drift tags, and name labels
+    // packed into as many lanes as that group genuinely needs.
+    function buildMilestoneGroupTrack(rowLabel, msSubset) {
+      var mTrack = document.createElement('div');
+      mTrack.className = 'track milestone-track';
+      mTrack.style.height = '30px'; // provisional; recalculated below once real widths are known
+      plot.appendChild(mTrack);
+
+      var mLabel = document.createElement('div');
+      mLabel.className = 'rowlabel';
+      mLabel.textContent = rowLabel;
+      mTrack.appendChild(mLabel);
+
+      // Build every milestone's elements first (name label, diamonds, tags,
+      // connector) at a provisional top, keeping references per milestone.
+      var msRefs = [];
+      msSubset.forEach(function (ms) {
+        var track = mTrack;
+        var planned = parseDate(ms.plannedDate);
+        var actual = ms.actualDate ? parseDate(ms.actualDate) : null;
+        var v = milestoneVariance(ms);
+        var descSuffix = ms.description ? (' — ' + ms.description) : '';
+        var ref = { nameLabel: null, diamonds: [], tags: [], connector: null };
+
+        if (planned && actual) {
+          var lo = Math.min(pct(planned), pct(actual));
+          var hi = Math.max(pct(planned), pct(actual));
+          if (hi > lo) {
+            var connector = document.createElement('div');
+            connector.className = 'milestone-connector';
+            connector.style.left = lo + '%';
+            connector.style.width = (hi - lo) + '%';
+            track.appendChild(connector);
+            ref.connector = connector;
+          }
+        }
+
+        if (planned) {
+          var planDiamond = document.createElement('div');
+          planDiamond.className = 'milestone-diamond plan';
+          planDiamond.style.left = pct(planned) + '%';
+          planDiamond.title = ms.name + ' — planned ' + fmt(planned) + descSuffix;
+          track.appendChild(planDiamond);
+          ref.diamonds.push(planDiamond);
+
+          var nameLabel = document.createElement('div');
+          nameLabel.className = 'milestone-name-label';
+          var labelLeft = (actual && pct(actual) < pct(planned)) ? pct(actual) : pct(planned);
+          placeEdgeAware(nameLabel, labelLeft, 0);
+          if (v && v.pending && v.overdue) {
+            nameLabel.textContent = ms.name + ' — ' + v.value + 'd overdue';
+            nameLabel.style.color = 'var(--actual-late)';
+            nameLabel.style.border = '1px solid var(--actual-late)';
+          } else {
+            nameLabel.textContent = ms.name;
+          }
+          track.appendChild(nameLabel);
+          ref.nameLabel = nameLabel;
+        }
+
+        if (actual) {
+          var late = planned ? actual > planned : false;
+          var actDiamond = document.createElement('div');
+          actDiamond.className = 'milestone-diamond actual' + (late ? ' late' : '');
+          actDiamond.style.left = pct(actual) + '%';
+          actDiamond.title = ms.name + ' — actual ' + fmt(actual) + descSuffix;
+          track.appendChild(actDiamond);
+          ref.diamonds.push(actDiamond);
+        } else if (v && v.overdue) {
+          var overdueDiamond = document.createElement('div');
+          overdueDiamond.className = 'milestone-diamond actual overdue';
+          overdueDiamond.style.left = pct(today) + '%';
+          overdueDiamond.title = ms.name + ' — not yet reached, ' + v.value + ' day(s) overdue' + descSuffix;
+          track.appendChild(overdueDiamond);
+          ref.diamonds.push(overdueDiamond);
+        }
+
+        if (v && !v.pending) {
+          var tag = document.createElement('div');
+          tag.className = 'milestone-drift ' + (v.value > 0 ? 'late' : 'ok');
+          tag.textContent = v.value === 0 ? 'on time' : (v.value > 0 ? '+' + v.value + 'd late' : Math.abs(v.value) + 'd early');
+          placeEdgeAware(tag, pct(actual), 1.2);
+          track.appendChild(tag);
+          ref.tags.push(tag);
+        } else if (v && v.overdue) {
+          var tag2 = document.createElement('div');
+          tag2.className = 'milestone-drift late';
+          tag2.textContent = v.value + 'd overdue';
+          placeEdgeAware(tag2, pct(today), 1.2);
+          track.appendChild(tag2);
+          ref.tags.push(tag2);
+        } else if (v && v.pending) {
+          var tag3 = document.createElement('div');
+          tag3.className = 'milestone-drift pending';
+          tag3.textContent = v.daysLeft === 0 ? 'due today' : (v.daysLeft + 'd left');
+          placeEdgeAware(tag3, pct(planned), 1.2);
+          track.appendChild(tag3);
+          ref.tags.push(tag3);
+        }
+
+        msRefs.push(ref);
+      });
+
+      // Measure each name label's actual rendered position/width, then pack
+      // overlapping ones into as many lanes as they genuinely need — no
+      // more, no fewer — so the row auto-sizes to whatever's on screen.
+      var GAP = 10, LANE_STEP = 50, NAME_OFFSET = 2, DIAMOND_OFFSET = 34, TAG_OFFSET = 30;
+      var withLabel = msRefs.filter(function (r) { return r.nameLabel; });
+      var measured = withLabel.map(function (r) {
+        return { ref: r, left: r.nameLabel.offsetLeft, right: r.nameLabel.offsetLeft + r.nameLabel.offsetWidth };
+      }).sort(function (a, b) { return a.left - b.left; });
+
+      var laneRightEdge = []; // rightmost occupied x per lane so far
+      measured.forEach(function (m) {
+        var lane = laneRightEdge.findIndex(function (edge) { return edge + GAP <= m.left; });
+        if (lane === -1) { lane = laneRightEdge.length; laneRightEdge.push(m.right); }
+        else { laneRightEdge[lane] = m.right; }
+        m.ref.lane = lane;
+      });
+      msRefs.forEach(function (r) { if (r.lane === undefined) r.lane = 0; }); // no label (shouldn't happen) — default lane
+
+      msRefs.forEach(function (r) {
+        var topName = r.lane * LANE_STEP + NAME_OFFSET;
+        var topDiamond = r.lane * LANE_STEP + DIAMOND_OFFSET;
+        var topTag = r.lane * LANE_STEP + TAG_OFFSET;
+        if (r.nameLabel) r.nameLabel.style.top = topName + 'px';
+        r.diamonds.forEach(function (d) { d.style.top = topDiamond + 'px'; });
+        r.tags.forEach(function (t) { t.style.top = topTag + 'px'; });
+        if (r.connector) r.connector.style.top = topDiamond + 'px';
+      });
+
+      var laneCount = Math.max(laneRightEdge.length, 1);
+      mTrack.style.height = (laneCount * LANE_STEP + 22) + 'px';
+    }
+
+    var customerMs = milestones.filter(function (ms) { return ms.category === 'customer'; });
+    var projectMs = milestones.filter(function (ms) { return ms.category !== 'customer'; });
+    if (customerMs.length > 0) buildMilestoneGroupTrack('Customer milestones', customerMs);
+    if (projectMs.length > 0) buildMilestoneGroupTrack('Project milestones', projectMs);
+
+    epics.forEach(function (it) {
+      var track = document.createElement('div');
+      track.className = 'track';
+
+      var label = document.createElement('div');
+      label.className = 'rowlabel';
+      label.textContent = it.name;
+      if (it.description) label.title = it.description;
+      track.appendChild(label);
+
+      var ps = parseDate(it.planStart), pe = parseDate(it.planEnd);
+      var re = parseDate(effectiveRevisedEnd(it));
+      var as = parseDate(it.actualStart);
+      var fin = effectiveActualFinish(it);
+      var ongoing = fin.ongoing;
+      var finishDate = fin.date ? parseDate(fin.date) : (ongoing ? today : null);
+      var descSuffix = it.description ? (' — ' + it.description) : '';
+
+      if (ps && re) {
+        var planBar = document.createElement('div');
+        planBar.className = 'bar plan';
+        planBar.style.left = pct(ps) + '%';
+        planBar.style.width = Math.max(pct(re) - pct(ps), 0.6) + '%';
+        planBar.title = it.name + ' — plan ' + fmt(ps) + ' to ' + fmt(re) + (it.revisedEnd && it.revisedEnd !== it.planEnd ? ' (revised)' : '') + descSuffix;
+        track.appendChild(planBar);
+
+        if (pe && it.revisedEnd && it.revisedEnd !== it.planEnd) {
+          var origMark = document.createElement('div');
+          origMark.className = 'revised-mark';
+          origMark.style.left = pct(pe) + '%';
+          origMark.title = 'Original plan end: ' + fmt(pe);
+          track.appendChild(origMark);
+        }
+
+        var plannedMd = manDaysFor(it);
+        if (plannedMd !== null) {
+          var planTag = document.createElement('div');
+          planTag.className = 'plan-days-tag';
+          placeEdgeAware(planTag, pct(ps), 0);
+          planTag.textContent = plannedMd + ' md planned';
+          planTag.title = it.name + ' — planned duration: ' + plannedMd + ' working day(s)';
+          track.appendChild(planTag);
+        }
+      }
+
+      if (as && finishDate) {
+        var unplanned = !ps;
+        var late = (!unplanned && re) ? finishDate > re : false;
+        var actBar = document.createElement('div');
+        actBar.className = 'bar actual' + (unplanned ? ' unplanned' : (late ? ' late' : ''));
+        actBar.style.left = pct(as) + '%';
+        actBar.style.width = Math.max(pct(finishDate) - pct(as), 0.6) + '%';
+        actBar.title = it.name + ' — actual ' + fmt(as) + ' to ' + (ongoing ? 'today (ongoing)' : fmt(finishDate)) + (unplanned ? ' (unplanned — not part of the original plan)' : '') + descSuffix;
+        if (ongoing) {
+          var stripe = document.createElement('div');
+          stripe.className = 'stripe';
+          stripe.style.color = unplanned ? 'var(--unplanned)' : (late ? 'var(--actual-late)' : 'var(--actual-ok)');
+          actBar.appendChild(stripe);
+        }
+        track.appendChild(actBar);
+
+        if (unplanned) {
+          var uTag = document.createElement('div');
+          uTag.className = 'drift-tag unplanned';
+          uTag.textContent = 'unplanned';
+          placeEdgeAware(uTag, pct(finishDate), 1.2);
+          track.appendChild(uTag);
+        } else {
+          var v = varianceFor(it);
+          if (v !== null) {
+            var tag = document.createElement('div');
+            tag.className = 'drift-tag ' + (v.value > 0 ? 'late' : 'ok');
+            var text = v.value === 0 ? 'on plan' : (v.value > 0 ? '+' + v.value + ' md late' : Math.abs(v.value) + ' md early');
+            if (ongoing && v.value <= 0) text = 'on track';
+            if (ongoing) {
+              var rem = remainingWorkdaysFor(it);
+              if (rem !== null) {
+                text += rem > 0 ? (' · ' + rem + 'd left') : (rem === 0 ? ' · due today' : ' · ' + Math.abs(rem) + 'd overdue');
+              }
+            }
+            tag.textContent = text;
+            placeEdgeAware(tag, pct(finishDate), 1.2);
+            track.appendChild(tag);
+          }
+        }
+      }
+
+      plot.appendChild(track);
+    });
+
+    if (today >= minDate && today <= maxDate) {
+      var todayWrap = document.createElement('div');
+      todayWrap.style.position = 'absolute';
+      todayWrap.style.left = pct(today) + '%';
+      todayWrap.style.top = '0';
+      todayWrap.style.bottom = '0';
+      todayWrap.style.width = '0';
+      todayWrap.innerHTML = '<div class="today-line"></div><div class="today-label">Today</div>';
+      plot.style.position = 'relative';
+      plot.appendChild(todayWrap);
+    }
+
+    chart.appendChild(plot);
+  }
+
+  function readForm() {
+    return {
+      name: document.getElementById('f-name').value.trim(),
+      description: document.getElementById('f-description').value.trim(),
+      planStart: document.getElementById('f-plan-start').value,
+      planEnd: document.getElementById('f-plan-end').value,
+      revisedEnd: document.getElementById('f-revised-end').value,
+      actualStart: document.getElementById('f-actual-start').value,
+      actualEnd: document.getElementById('f-actual-end').value,
+      actualComplete: document.getElementById('f-actual-complete').value
+    };
+  }
+  function fillForm(it) {
+    document.getElementById('f-name').value = it.name;
+    document.getElementById('f-description').value = it.description || '';
+    document.getElementById('f-plan-start').value = it.planStart || '';
+    document.getElementById('f-plan-end').value = it.planEnd || '';
+    document.getElementById('f-revised-end').value = it.revisedEnd || it.planEnd || '';
+    document.getElementById('f-actual-start').value = it.actualStart || '';
+    document.getElementById('f-actual-end').value = it.actualEnd || '';
+    document.getElementById('f-actual-complete').value = it.actualComplete || '';
+  }
+  function clearForm() {
+    ['f-name','f-description','f-plan-start','f-plan-end','f-revised-end','f-actual-start','f-actual-end','f-actual-complete'].forEach(function (id) {
+      document.getElementById(id).value = '';
+    });
+    revisedEndTouched = false;
+  }
+
+  function startEdit(id) {
+    var it = activeProject().epics.find(function (x) { return x.id === id; });
+    if (!it) return;
+    editingId = id;
+    revisedEndTouched = true;
+    fillForm(it);
+    document.getElementById('form-title').textContent = 'Edit epic';
+    document.getElementById('add-btn').textContent = 'Save changes';
+    document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+    document.getElementById('form-hint').textContent = 'Editing "' + it.name + '" — update the fields and save, or cancel.';
+    document.getElementById('f-name').focus();
+    renderRows();
+  }
+  function cancelEdit() {
+    editingId = null;
+    clearForm();
+    document.getElementById('form-title').textContent = 'Add an epic';
+    document.getElementById('add-btn').textContent = 'Add to roadmap';
+    document.getElementById('cancel-edit-btn').style.display = 'none';
+    document.getElementById('form-hint').textContent = 'Revised end date defaults to the plan end date — edit it any time the commitment changes.';
+    renderRows();
+  }
+
+  document.getElementById('f-plan-end').addEventListener('input', function () {
+    if (!revisedEndTouched) document.getElementById('f-revised-end').value = this.value;
+  });
+  document.getElementById('f-revised-end').addEventListener('input', function () { revisedEndTouched = true; });
+  document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+
+  document.getElementById('add-btn').addEventListener('click', function () {
+    var f = readForm();
+    if (!f.name) {
+      setStatus('Fill in at least the epic name.');
+      return;
+    }
+    if ((f.planStart || f.planEnd) && !(f.planStart && f.planEnd)) {
+      setStatus('Fill in both plan start and plan end, or leave both blank for unplanned work.');
+      return;
+    }
+    if (!f.planStart && !f.actualStart) {
+      setStatus('Enter plan start/end, or at least an actual start for unplanned work.');
+      return;
+    }
+    var record = {
+      name: f.name,
+      description: f.description,
+      planStart: f.planStart || null,
+      planEnd: f.planEnd || null,
+      revisedEnd: f.planStart ? (f.revisedEnd || f.planEnd) : null,
+      actualStart: f.actualStart || null,
+      actualEnd: f.actualEnd || null,
+      actualComplete: f.actualComplete || null
+    };
+
+    var proj = activeProject();
+    if (editingId !== null) {
+      var idx = proj.epics.findIndex(function (x) { return x.id === editingId; });
+      if (idx !== -1) proj.epics[idx] = Object.assign({ id: editingId }, record);
+      cancelEdit();
+    } else {
+      proj.epics.push(Object.assign({ id: nextEpicId++ }, record));
+      clearForm();
+    }
+
+    save();
+    render();
+    document.getElementById('f-name').focus();
+  });
+
+  var downloadsCap = null;
+  var exportBtn = document.getElementById('export-btn');
+  exportBtn.disabled = false;
+  exportBtn.textContent = 'Export to Excel';
+  (function initDownloads() {
+    // Only claude.ai's own artifact viewer exposes window.claude. When this
+    // page is opened on its own (downloaded, or run outside claude.ai), that
+    // bridge doesn't exist — fall back to a plain browser download instead
+    // of disabling the button.
+    try {
+      if (window.claude && typeof window.claude.use === 'function') {
+        window.claude.use('downloads').then(function (d) {
+          downloadsCap = d; // null here just means "use the plain-browser fallback"
+        }).catch(function () { downloadsCap = null; });
+      }
+    } catch (e) { downloadsCap = null; }
+  })();
+
+  function browserDownload(filename, blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  var XLSX_COLUMNS = ['Epic', 'Description', 'Plan Start', 'Plan End', 'Revised End', 'Actual Start', 'Actual End', 'Actual Complete', 'Man-days', 'Variance (md)'];
+
+  function epicToRow(it) {
+    var md = manDaysFor(it);
+    var v = varianceFor(it);
+    return [
+      it.name || '',
+      it.description || '',
+      it.planStart || '',
+      it.planEnd || '',
+      effectiveRevisedEnd(it) || '',
+      it.actualStart || '',
+      it.actualEnd || '',
+      it.actualComplete || '',
+      md === null ? '' : md,
+      v === null ? '' : v.value
+    ];
+  }
+
+  var MILESTONE_COLUMNS = ['Milestone', 'Type', 'Description', 'Planned Date', 'Actual Date'];
+  function milestoneToRow(ms) {
+    return [ms.name || '', ms.category === 'customer' ? 'Customer' : 'Project', ms.description || '', ms.plannedDate || '', ms.actualDate || ''];
+  }
+
+  exportBtn.addEventListener('click', function () {
+    var proj = activeProject();
+    var rows = [XLSX_COLUMNS].concat(proj.epics.map(epicToRow));
+    var sheet = XLSX.utils.aoa_to_sheet(rows);
+    sheet['!cols'] = [{ wch: 24 }, { wch: 36 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 13 }, { wch: 9 }, { wch: 12 }];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, sheet, 'Epics');
+
+    var mRows = [MILESTONE_COLUMNS].concat(proj.milestones.map(milestoneToRow));
+    var mSheet = XLSX.utils.aoa_to_sheet(mRows);
+    mSheet['!cols'] = [{ wch: 24 }, { wch: 10 }, { wch: 36 }, { wch: 12 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, mSheet, 'Milestones');
+
+    var arrayBuf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+    var blob = new Blob([arrayBuf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var filename = (proj.name.replace(/[^a-z0-9\-_ ]/gi, '').trim().replace(/\s+/g, '-') || 'roadmap') + '.xlsx';
+
+    if (downloadsCap) {
+      downloadsCap.save({ filename: filename, data: blob }).then(function () {
+        setStatus('Exported "' + proj.name + '" to Excel.');
+      }).catch(function (err) {
+        var code = err && err.code;
+        if (code === 'declined') setStatus('Export cancelled.');
+        else setStatus('Could not export: ' + (err && err.message ? err.message : 'unknown error') + '.');
+      });
+    } else {
+      try {
+        browserDownload(filename, blob);
+        setStatus('Exported "' + proj.name + '" to Excel.');
+      } catch (err) {
+        setStatus('Could not export in this browser.');
+      }
+    }
+  });
+
+  document.getElementById('import-btn').addEventListener('click', function () {
+    document.getElementById('import-file').click();
+  });
+
+  document.getElementById('import-file').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      try {
+        var data = new Uint8Array(ev.target.result);
+        var wb = XLSX.read(data, { type: 'array' });
+        var proj = activeProject();
+        var added = 0, skipped = 0, msAdded = 0, msSkipped = 0;
+
+        var epicSheet = wb.Sheets['Epics'] || wb.Sheets[wb.SheetNames[0]];
+        if (epicSheet) {
+          var rows = XLSX.utils.sheet_to_json(epicSheet, { header: 1, defval: '', raw: false });
+          rows.forEach(function (r, i) {
+            if (i === 0) return; // header row
+            var name = (r[0] || '').toString().trim();
+            var planStart = normalizeDateCell(r[2]);
+            var planEnd = normalizeDateCell(r[3]);
+            var actualStart = normalizeDateCell(r[5]);
+            if (!name) { skipped++; return; }
+            if ((planStart || planEnd) && !(planStart && planEnd)) { skipped++; return; } // partial plan dates — ambiguous, skip
+            if (!planStart && !actualStart) { skipped++; return; } // nothing to place on the timeline
+            proj.epics.push({
+              id: nextEpicId++,
+              name: name,
+              description: (r[1] || '').toString(),
+              planStart: planStart || null,
+              planEnd: planEnd || null,
+              revisedEnd: planStart ? (normalizeDateCell(r[4]) || planEnd) : null,
+              actualStart: actualStart || null,
+              actualEnd: normalizeDateCell(r[6]) || null,
+              actualComplete: normalizeDateCell(r[7]) || null
+            });
+            added++;
+          });
+        }
+
+        var msSheet = wb.Sheets['Milestones'];
+        if (msSheet) {
+          var msRows = XLSX.utils.sheet_to_json(msSheet, { header: 1, defval: '', raw: false });
+          msRows.forEach(function (r, i) {
+            if (i === 0) return;
+            var name = (r[0] || '').toString().trim();
+            var typeRaw = (r[1] || '').toString().trim().toLowerCase();
+            var planned = normalizeDateCell(r[3]);
+            if (!name || !planned) { msSkipped++; return; }
+            proj.milestones.push({
+              id: nextMilestoneId++,
+              name: name,
+              category: typeRaw === 'customer' ? 'customer' : 'project',
+              description: (r[2] || '').toString(),
+              plannedDate: planned,
+              actualDate: normalizeDateCell(r[4]) || null
+            });
+            msAdded++;
+          });
+        }
+
+        save();
+        render();
+        var msg = 'Imported ' + added + ' epic(s)' + (msSheet ? ' and ' + msAdded + ' milestone(s)' : '') + ' into "' + proj.name + '"';
+        var skips = [];
+        if (skipped) skips.push(skipped + ' epic row(s)');
+        if (msSkipped) skips.push(msSkipped + ' milestone row(s)');
+        if (skips.length) msg += ' (' + skips.join(', ') + ' skipped — missing required fields)';
+        setStatus(msg + '.');
+      } catch (err) {
+        setStatus('Could not read that file — make sure it is an .xlsx exported from this tool.');
+      }
+      document.getElementById('import-file').value = '';
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  // Accepts "YYYY-MM-DD" text, or a JS Date/serial that SheetJS may hand back
+  // for cells Excel auto-formatted as dates, and normalizes to "YYYY-MM-DD".
+  function normalizeDateCell(v) {
+    if (!v && v !== 0) return null;
+    if (v instanceof Date) {
+      return v.getFullYear() + '-' + String(v.getMonth() + 1).padStart(2, '0') + '-' + String(v.getDate()).padStart(2, '0');
+    }
+    var s = v.toString().trim();
+    if (!s) return null;
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
+    var d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    return null;
+  }
+
+  // ---- Export to PowerPoint (Motherson Group brand) ----
+  var MOTHERSON = {
+    red: 'DA2128', dk1: '231F20', dk2: '575756', lt2: 'DADADA',
+    mint: '8AB48F', purple: '4D2A6C', unplanned: '4D2A6C', orange: 'EB5B36', redTint: 'F7DEDC', mintTint: 'E3EDE4',
+    fontHead: 'Aptos Light', fontBody: 'Aptos Display'
+  };
+
+  // Motherson wordmark (red, for light backgrounds) — from the brand master template
+  var LOGO_RED_SVG = '<svg viewBox="0 0 141.73 32.14" xmlns="http://www.w3.org/2000/svg"><path d="M0 21.3 3.7 21.3 3.7 23.15C4.28 22.17 5.42 21.3 7.09 21.3 8.52 21.3 9.51 21.89 10.03 23.01 10.96 21.81 12.24 21.3 13.61 21.3 15.66 21.3 17.15 22.56 17.15 25.14L17.15 32.11 13.45 32.11 13.45 25.73C13.45 24.69 12.91 24.18 12.06 24.18 11.07 24.18 10.4 24.79 10.4 25.91L10.4 32.11 6.74 32.11 6.74 25.73C6.74 24.69 6.2 24.18 5.35 24.18 4.36 24.18 3.7 24.79 3.7 25.91L3.7 32.11 0 32.11 0 21.3Z" fill="#DA2128"/><path d="M18.41 26.85 18.41 26.69C18.41 23.38 21 21.29 24.35 21.29 27.7 21.29 30.25 23.32 30.25 26.59L30.25 26.75C30.25 30.1 27.66 32.11 24.33 32.11 21 32.11 18.41 30.18 18.41 26.85M26.48 26.79 26.48 26.63C26.48 24.9 25.76 23.93 24.35 23.93 22.94 23.93 22.2 24.86 22.2 26.59L22.2 26.75C22.2 28.52 22.92 29.49 24.35 29.49 25.78 29.49 26.48 28.5 26.48 26.79" fill="#DA2128"/><path d="M35.59 28.23 35.59 23.98 37.72 23.98 37.72 21.58 35.59 21.58 35.59 18.97 31.89 20.39 31.89 21.58 30.59 21.58 30.59 23.98 31.89 23.98 31.89 28.57C31.89 30.99 33.25 32.12 35.7 32.12 36.57 32.12 37.27 31.94 37.75 31.82L37.75 29.14C37.42 29.26 37.11 29.32 36.69 29.32 35.99 29.32 35.6 28.98 35.6 28.23" fill="#DA2128"/><path d="M46.5 21.3C44.7 21.3 43.52 22.17 42.94 23.23L42.94 18.33 42.94 18.33 42.94 16.18 39.24 17.6 39.24 32.11 42.94 32.11 42.94 26.1C42.94 24.78 43.69 24.15 44.78 24.15 45.87 24.15 46.33 24.72 46.33 25.88L46.33 32.1C46.33 32.1 50.03 32.1 50.03 32.1L50.03 25.17C50.03 22.53 48.58 21.29 46.49 21.29" fill="#DA2128"/><path d="M51.27 26.85 51.27 26.69C51.27 23.38 53.85 21.29 57.12 21.29 60.08 21.29 62.62 22.9 62.62 26.61L62.62 27.53 55.01 27.53C55.11 28.89 55.94 29.68 57.27 29.68 58.49 29.68 59.01 29.15 59.15 28.46L62.63 28.46C62.3 30.78 60.41 32.1 57.15 32.1 53.89 32.1 51.27 30.21 51.27 26.84M59.03 25.55C58.97 24.31 58.33 23.62 57.13 23.62 56.01 23.62 55.25 24.31 55.06 25.55L59.03 25.55Z" fill="#DA2128"/><path d="M64.04 21.3 67.75 21.3 67.75 23.49C68.43 21.95 69.57 21.28 71.24 21.31L71.24 24.6C68.98 24.54 67.74 25.21 67.74 26.87L67.74 32.13 64.04 32.13 64.04 21.32Z" fill="#DA2128"/><path d="M71.83 28.61 75.24 28.61C75.36 29.36 75.72 29.77 76.77 29.77 77.68 29.77 78.09 29.43 78.09 28.92 78.09 28.41 77.57 28.19 76.08 27.99 73.19 27.64 71.96 26.83 71.96 24.68 71.96 22.39 74.09 21.29 76.6 21.29 79.27 21.29 81.13 22.16 81.38 24.62L78.03 24.62C77.89 23.93 77.49 23.59 76.64 23.59 75.79 23.59 75.42 23.93 75.42 24.4 75.42 24.87 75.92 25.09 77.24 25.25 80.24 25.61 81.69 26.35 81.69 28.56 81.69 31 79.79 32.11 76.79 32.11 73.79 32.11 71.91 30.89 71.83 28.6" fill="#DA2128"/><path d="M82.37 26.85 82.37 26.69C82.37 23.38 84.95 21.29 88.31 21.29 91.67 21.29 94.21 23.32 94.21 26.59L94.21 26.75C94.21 30.1 91.62 32.11 88.29 32.11 84.96 32.11 82.37 30.18 82.37 26.85M90.43 26.79 90.43 26.63C90.43 24.9 89.71 23.93 88.3 23.93 86.89 23.93 86.15 24.86 86.15 26.59L86.15 26.75C86.15 28.52 86.87 29.49 88.3 29.49 89.73 29.49 90.43 28.5 90.43 26.79" fill="#DA2128"/><path d="M95.52 21.3 99.2 21.3 99.22 23.23C99.8 22.17 100.98 21.3 102.78 21.3 104.87 21.3 106.32 22.54 106.32 25.18L106.32 32.11 102.61 32.11 102.61 25.89C102.61 24.73 102.14 24.16 101.06 24.16 99.98 24.16 99.22 24.79 99.22 26.11L99.22 32.12 95.52 32.12 95.52 21.31Z" fill="#DA2128"/><path d="M136.11 2.25C134.7 2.86 133.72 4.26 133.7 5.89L133.7 32.14 139.32 32.14C140.65 32.14 141.73 31.06 141.73 29.73L141.73 0 136.11 2.25Z" fill="#DA2128"/><path d="M125.66 10.28C124.25 10.89 123.27 12.29 123.25 13.92L123.25 32.14C123.25 32.14 128.87 32.14 128.87 32.14 130.2 32.14 131.28 31.06 131.28 29.73L131.28 8.03 125.66 10.28Z" fill="#DA2128"/><path d="M115.22 18.32C113.81 18.93 112.83 20.33 112.81 21.96L112.81 32.14C112.81 32.14 118.43 32.14 118.43 32.14 119.76 32.14 120.84 31.06 120.84 29.73L120.84 16.07 115.22 18.32Z" fill="#DA2128"/></svg>';
+
+  // White variant (for red/dark backgrounds)
+  var LOGO_WHITE_SVG = LOGO_RED_SVG.replace(/#DA2128/g, '#FFFFFF');
+
+  // Stacked icon + wordmark (red) — used on the thank-you slide
+  var LOGO_STACKED_SVG = '<svg viewBox="0 0 144.93 192.56" xmlns="http://www.w3.org/2000/svg"><path d="M116.75 11.31C109.71 14.4 104.77 21.4 104.67 29.58L104.67 161.5C104.67 161.5 132.85 161.5 132.85 161.5 139.52 161.5 144.93 156.08 144.93 149.39L144.93 0 116.75 11.31Z" fill="#DA2128"/><path d="M64.41 51.68C57.37 54.77 52.43 61.77 52.33 69.95L52.33 161.5C52.33 161.5 80.51 161.5 80.51 161.5 87.18 161.5 92.59 156.08 92.59 149.39L92.59 40.38 64.41 51.69Z" fill="#DA2128"/><path d="M12.08 92.06C5.04 95.14 0.1 102.15 0 110.33L0 161.5C0 161.5 28.18 161.5 28.18 161.5 34.85 161.5 40.26 156.08 40.26 149.39L40.26 80.75 12.08 92.05Z" fill="#DA2128"/><path d="M0 177.77 5.05 177.77 5.05 180.3C5.84 178.95 7.39 177.77 9.68 177.77 11.63 177.77 12.98 178.58 13.69 180.11 14.96 178.47 16.71 177.77 18.57 177.77 21.36 177.77 23.39 179.49 23.39 183.02L23.39 192.54 18.35 192.54 18.35 183.82C18.35 182.39 17.61 181.69 16.46 181.69 15.11 181.69 14.2 182.53 14.2 184.06L14.2 192.54 9.21 192.54 9.21 183.81C9.21 182.38 8.48 181.68 7.32 181.68 5.97 181.68 5.06 182.52 5.06 184.05L5.06 192.53 0 192.53 0 177.74Z" fill="#DA2128"/><path d="M25.1 185.36 25.1 185.15C25.1 180.62 28.63 177.77 33.19 177.77 37.75 177.77 41.23 180.54 41.23 185.01L41.23 185.22C41.23 189.8 37.7 192.55 33.17 192.55 28.64 192.55 25.1 189.91 25.1 185.36M36.1 185.28 36.1 185.07C36.1 182.7 35.11 181.38 33.19 181.38 31.27 181.38 30.26 182.65 30.26 185.02L30.26 185.23C30.26 187.65 31.25 188.97 33.19 188.97 35.13 188.97 36.1 187.62 36.1 185.28" fill="#DA2128"/><path d="M48.51 187.24 48.51 181.42 51.41 181.42 51.41 178.14 48.51 178.14 48.51 174.57 43.46 176.52 43.46 178.14 41.68 178.14 41.68 181.42 43.46 181.42 43.46 187.69C43.46 191 45.32 192.54 48.65 192.54 49.83 192.54 50.79 192.3 51.44 192.14L51.44 188.48C50.99 188.64 50.57 188.72 50 188.72 49.04 188.72 48.51 188.26 48.51 187.24" fill="#DA2128"/><path d="M63.38 177.77C60.93 177.77 59.32 178.95 58.53 180.41L58.53 173.71 58.53 173.71 58.53 170.77 53.48 172.72 53.48 192.56 58.53 192.56 58.53 184.35C58.53 182.55 59.55 181.69 61.04 181.69 62.53 181.69 63.15 182.47 63.15 184.06L63.15 192.57C63.15 192.57 68.2 192.57 68.2 192.57L68.2 183.09C68.2 179.48 66.23 177.78 63.38 177.78" fill="#DA2128"/><path d="M69.9 185.36 69.9 185.15C69.9 180.63 73.42 177.77 77.88 177.77 81.91 177.77 85.38 179.98 85.38 185.04L85.38 186.31 75 186.31C75.14 188.17 76.27 189.25 78.08 189.25 79.74 189.25 80.45 188.52 80.65 187.58L85.39 187.58C84.94 190.76 82.37 192.56 77.92 192.56 73.47 192.56 69.91 189.98 69.91 185.37M80.47 183.59C80.38 181.89 79.51 180.95 77.87 180.95 76.35 180.95 75.3 181.89 75.05 183.59L80.47 183.59Z" fill="#DA2128"/><path d="M87.31 177.77 92.36 177.77 92.36 180.76C93.29 178.66 94.84 177.74 97.12 177.77L97.12 182.27C94.04 182.19 92.35 183.1 92.35 185.37L92.35 192.56 87.3 192.56 87.3 177.77Z" fill="#DA2128"/><path d="M97.91 187.76 102.56 187.76C102.73 188.78 103.21 189.35 104.65 189.35 105.89 189.35 106.45 188.89 106.45 188.19 106.45 187.49 105.74 187.19 103.71 186.92 99.76 186.44 98.1 185.33 98.1 182.4 98.1 179.27 101.01 177.77 104.42 177.77 108.06 177.77 110.59 178.95 110.93 182.32L106.36 182.32C106.16 181.38 105.63 180.92 104.47 180.92 103.31 180.92 102.81 181.38 102.81 182.02 102.81 182.66 103.49 182.96 105.29 183.18 109.38 183.66 111.35 184.69 111.35 187.7 111.35 191.04 108.76 192.55 104.67 192.55 100.58 192.55 98.01 190.88 97.9 187.76" fill="#DA2128"/><path d="M112.28 185.36 112.28 185.15C112.28 180.63 115.8 177.77 120.37 177.77 124.94 177.77 128.41 180.54 128.41 185.02L128.41 185.23C128.41 189.81 124.89 192.56 120.34 192.56 115.79 192.56 112.27 189.92 112.27 185.37M123.28 185.28 123.28 185.07C123.28 182.7 122.29 181.38 120.37 181.38 118.45 181.38 117.44 182.65 117.44 185.02L117.44 185.23C117.44 187.66 118.43 188.98 120.37 188.98 122.31 188.98 123.28 187.63 123.28 185.29" fill="#DA2128"/><path d="M130.21 177.77 135.23 177.77 135.25 180.41C136.04 178.96 137.65 177.77 140.1 177.77 142.95 177.77 144.92 179.47 144.92 183.08L144.92 192.56 139.87 192.56 139.87 184.05C139.87 182.46 139.23 181.68 137.76 181.68 136.29 181.68 135.25 182.54 135.25 184.34L135.25 192.55 130.2 192.55 130.2 177.77Z" fill="#DA2128"/></svg>';
+
+  // Rasterize an inline SVG to a PNG data URI via canvas — safer to embed in
+  // a .pptx than raw SVG, which some PowerPoint versions can mis-handle.
+  function svgToPngDataUri(svgText, w, h) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (e) { reject(e); }
+      };
+      img.onerror = function () { reject(new Error('logo image failed to render')); };
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgText);
+    });
+  }
+
+  function computeExportRange(epics, milestones) {
+    var today = todayUTC();
+    var allDates = [];
+    epics.forEach(function (it) {
+      allDates.push(parseDate(it.planStart), parseDate(it.planEnd), parseDate(effectiveRevisedEnd(it)), parseDate(it.actualStart));
+      var fin = effectiveActualFinish(it);
+      allDates.push(fin.date ? parseDate(fin.date) : (fin.ongoing ? today : null));
+    });
+    milestones.forEach(function (ms) {
+      allDates.push(parseDate(ms.plannedDate));
+      allDates.push(ms.actualDate ? parseDate(ms.actualDate) : null);
+    });
+    allDates.push(today);
+    allDates = allDates.filter(Boolean);
+    var minDate = new Date(Math.min.apply(null, allDates));
+    var maxDate = new Date(Math.max.apply(null, allDates));
+    var rangeDays = Math.max(daysBetween(minDate, maxDate), 14);
+    var pad = Math.max(Math.round(rangeDays * 0.04), 3);
+    minDate = new Date(minDate.getTime() - pad * 86400000);
+    maxDate = new Date(maxDate.getTime() + pad * 86400000);
+    var totalDays = daysBetween(minDate, maxDate);
+    return {
+      minDate: minDate, maxDate: maxDate, today: today,
+      frac: function (d) { return daysBetween(minDate, d) / totalDays; }
+    };
+  }
+
+  async function exportPptx() {
+    var exportPptxBtn = document.getElementById('export-pptx-btn');
+    if (typeof PptxGenJS === 'undefined') {
+      setStatus('PowerPoint export library did not load — check your connection and try again.');
+      return;
+    }
+    exportPptxBtn.disabled = true;
+    var prevLabel = exportPptxBtn.textContent;
+    exportPptxBtn.textContent = 'Building PowerPoint…';
+
+    try {
+      var proj = activeProject();
+      var epics = proj.epics, milestones = proj.milestones;
+      var C = MOTHERSON;
+      var range = computeExportRange(epics, milestones);
+
+      var redLogo = await svgToPngDataUri(LOGO_RED_SVG, 700, 159);
+      var whiteLogo = await svgToPngDataUri(LOGO_WHITE_SVG, 700, 159);
+      var stackedLogo = await svgToPngDataUri(LOGO_STACKED_SVG, 460, 610);
+
+      var pres = new PptxGenJS();
+      pres.defineLayout({ name: 'MOTHERSON_16x9', width: 10, height: 5.625 });
+      pres.layout = 'MOTHERSON_16x9';
+      pres.author = 'Motherson Group';
+      pres.company = 'Motherson Group';
+      pres.title = proj.name + ' — Plan vs Actual';
+
+      var LOGO_AR = 32.14 / 141.73;      // wordmark height/width
+      var STACK_AR = 192.56 / 144.93;    // stacked logo height/width
+
+      // ---- Slide 1: Title ----
+      var s1 = pres.addSlide();
+      s1.background = { color: C.red };
+      var lw = 2.3, lh = lw * LOGO_AR;
+      s1.addImage({ data: whiteLogo, x: 0.6, y: 0.5, w: lw, h: lh });
+      s1.addText(proj.name, { x: 0.6, y: 2.15, w: 8.8, h: 1.0, fontFace: C.fontHead, fontSize: 32, bold: true, color: 'FFFFFF' });
+      s1.addText('Plan vs. Actual — Roadmap Timeline', { x: 0.6, y: 2.95, w: 8.8, h: 0.5, fontFace: C.fontBody, fontSize: 17, color: 'FFFFFF' });
+      s1.addText(new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }), { x: 0.6, y: 5.0, w: 5, h: 0.35, fontFace: C.fontBody, fontSize: 11, color: 'FFFFFF' });
+
+      // ---- Slide 2: Agenda ----
+      var s2 = pres.addSlide();
+      s2.background = { color: 'FFFFFF' };
+      s2.addShape('rect', { x: 0, y: 0, w: 10, h: 0.85, fill: { color: C.red }, line: { type: 'none' } });
+      var alw = 1.4, alh = alw * LOGO_AR;
+      s2.addImage({ data: whiteLogo, x: 0.5, y: (0.85 - alh) / 2, w: alw, h: alh });
+      s2.addText('Agenda', { x: 0.6, y: 1.15, w: 8.8, h: 0.6, fontFace: C.fontHead, fontSize: 24, bold: true, color: C.dk1 });
+      var agenda = ['Timeline Overview', 'Epics — Plan vs Actual'];
+      if (milestones.length) agenda.push('Milestones — Plan vs Actual');
+      agenda.push('Thank You');
+      var agendaRuns = [];
+      agenda.forEach(function (t, i) {
+        agendaRuns.push({ text: (i + 1) + '.  ' + t, options: { breakLine: true, fontFace: C.fontBody, fontSize: 18, color: C.dk2 } });
+      });
+      s2.addText(agendaRuns, { x: 0.9, y: 2.0, w: 8, h: 3, lineSpacingMultiple: 1.9 });
+
+      // ---- Slide 3+: Timeline (paginated — a fixed slide can only hold so
+      // many rows; once a project has more epics than fit, the rest spill
+      // onto additional "Timeline (cont.)" slides instead of running off
+      // the bottom of the page) ----
+      var X0 = 1.85, X1 = 9.55, rowH = 0.52, topY = 1.15;
+      function xAt(d) { return X0 + (X1 - X0) * range.frac(d); }
+
+      // Places a label to the right of an anchor point normally; once it
+      // would run past the right edge of the slide, flips it to end at the
+      // anchor instead (growing leftward) so nothing gets clipped.
+      var SLIDE_RIGHT_SAFE = 9.65, SLIDE_LEFT_SAFE = 0.3;
+      function edgeAwareText(slide, text, anchorX, y, w, opts) {
+        var o = Object.assign({}, opts, { y: y, h: opts.h || 0.18 });
+        if (anchorX + w > SLIDE_RIGHT_SAFE) {
+          o.x = Math.max(SLIDE_LEFT_SAFE, anchorX - w);
+          o.w = w;
+          o.align = 'right';
+        } else {
+          o.x = anchorX;
+          o.w = w;
+        }
+        slide.addText(text, o);
+      }
+
+      // Build each milestone's full label text up front (name + its current
+      // state — overdue / days left / how it landed) and estimate its
+      // rendered width, so overlapping ones can be packed into lanes the
+      // same way the on-screen chart does — there's no live DOM to measure
+      // in a slide, so width is estimated from character count. Customer
+      // and Project milestones are packed as two independent groups so
+      // they render as two separate rows.
+      var MS_FONT_PT = 7, MS_CHAR_W_IN = MS_FONT_PT * 0.62 / 72, MS_LABEL_PAD_IN = 0.10, MS_LANE_GAP_IN = 0.10, MS_LANE_STEP_IN = 0.4;
+      function milestoneLabelText(ms, v) {
+        if (!v) return ms.name;
+        if (v.pending && v.overdue) return ms.name + ' (' + v.value + 'd overdue)';
+        if (v.pending && !v.overdue) return ms.name + (v.daysLeft === 0 ? ' (due today)' : ' (' + v.daysLeft + 'd left)');
+        if (v.value === 0) return ms.name + ' (on time)';
+        return ms.name + ' (' + (v.value > 0 ? ('+' + v.value + 'd late') : (Math.abs(v.value) + 'd early')) + ')';
+      }
+      function packMilestoneGroup(msList) {
+        var items = msList.map(function (ms) {
+          var planned = parseDate(ms.plannedDate);
+          var actual = ms.actualDate ? parseDate(ms.actualDate) : null;
+          var v = milestoneVariance(ms);
+          var label = milestoneLabelText(ms, v);
+          var anchorDate = (actual && planned && actual < planned) ? actual : (planned || actual);
+          return {
+            ms: ms, planned: planned, actual: actual, v: v, label: label,
+            x: anchorDate ? xAt(anchorDate) : null,
+            w: label.length * MS_CHAR_W_IN + MS_LABEL_PAD_IN
+          };
+        }).filter(function (it) { return it.x !== null; });
+
+        var laneRight = [];
+        items.slice().sort(function (a, b) { return a.x - b.x; }).forEach(function (it) {
+          var lane = laneRight.findIndex(function (edge) { return edge + MS_LANE_GAP_IN <= it.x; });
+          if (lane === -1) { lane = laneRight.length; laneRight.push(it.x + it.w); }
+          else { laneRight[lane] = it.x + it.w; }
+          it.lane = lane;
+        });
+        var laneCount = Math.max(laneRight.length, 1);
+        return { items: items, rowH: 0.24 + laneCount * MS_LANE_STEP_IN };
+      }
+
+      var customerMsList = milestones.filter(function (ms) { return ms.category === 'customer'; });
+      var projectMsList = milestones.filter(function (ms) { return ms.category !== 'customer'; });
+      var customerGroup = customerMsList.length ? packMilestoneGroup(customerMsList) : null;
+      var projectGroup = projectMsList.length ? packMilestoneGroup(projectMsList) : null;
+      var msRowH = (customerGroup ? customerGroup.rowH : 0) + (projectGroup ? projectGroup.rowH : 0);
+      // How much vertical room is actually available for rows on a slide,
+      // keeping a safe margin above the legend and the bottom edge.
+      var MAX_ROWS_H = 3.85;
+
+      function drawTimelineSlide(epicsChunk, includeMilestones, pageNum, totalPages) {
+        var s3 = pres.addSlide();
+        s3.background = { color: 'FFFFFF' };
+        s3.addShape('rect', { x: 0, y: 0, w: 10, h: 0.62, fill: { color: C.red }, line: { type: 'none' } });
+        s3.addText(proj.name, { x: 0.4, y: 0.07, w: 7.5, h: 0.32, fontFace: C.fontHead, fontSize: 17, bold: true, color: 'FFFFFF' });
+        s3.addText('PLAN VS. ACTUAL — TIMELINE' + (totalPages > 1 ? '  (' + pageNum + '/' + totalPages + ')' : ''), { x: 0.4, y: 0.37, w: 7.5, h: 0.2, fontFace: C.fontBody, fontSize: 9, color: 'FFFFFF', charSpacing: 1 });
+
+        var thisMsRowH = includeMilestones ? msRowH : 0;
+        var totalRowsH = thisMsRowH + rowH * epicsChunk.length;
+        var panelTop = topY - 0.42, panelBottom = topY + totalRowsH + 0.06;
+
+        // Framed panel behind the whole chart, and a light gutter behind the
+        // row labels, so the timeline reads as one contained visual instead
+        // of loose shapes floating on the slide.
+        s3.addShape('roundRect', { x: 0.25, y: panelTop, w: 9.5, h: panelBottom - panelTop, rectRadius: 0.06, fill: { type: 'none' }, line: { color: C.lt2, width: 1 } });
+        s3.addShape('rect', { x: 0.25, y: topY, w: X0 - 0.35, h: totalRowsH, fill: { color: C.lt2, transparency: 78 }, line: { type: 'none' } });
+
+        // Month gridlines/labels — the slide width is fixed (no scrolling like
+        // the web view), so for a long date range, thin out labels to keep
+        // them from overlapping into an unreadable smear.
+        var cursor = new Date(Date.UTC(range.minDate.getUTCFullYear(), range.minDate.getUTCMonth(), 1));
+        if (cursor < range.minDate) cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+        var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var pptxTickCount = 0;
+        var _ptc = new Date(cursor);
+        while (_ptc <= range.maxDate) { pptxTickCount++; _ptc.setUTCMonth(_ptc.getUTCMonth() + 1); }
+        var pptxMonthStride = Math.max(1, Math.ceil(pptxTickCount / 12));
+        var pptxTickIdx = 0;
+        while (cursor <= range.maxDate) {
+          if (pptxTickIdx % pptxMonthStride === 0) {
+            var mx = xAt(cursor);
+            s3.addText(MONTHS[cursor.getUTCMonth()] + ' ' + cursor.getUTCFullYear(), { x: mx, y: topY - 0.30, w: 1.0, h: 0.2, fontFace: C.fontBody, fontSize: 8, bold: true, color: C.dk2 });
+            s3.addShape('rect', { x: mx, y: topY, w: 0.008, h: totalRowsH, fill: { color: C.lt2, transparency: 25 }, line: { type: 'none' } });
+          }
+          cursor = new Date(cursor); cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+          pptxTickIdx++;
+        }
+
+        var y = topY;
+        var dSize = 0.13, half = dSize / 2;
+        function drawMilestoneGroupRow(rowLabel, group) {
+          s3.addText(rowLabel, { x: 0.4, y: y, w: X0 - 0.5, h: group.rowH, fontFace: C.fontBody, fontSize: 9, bold: true, color: C.dk1, valign: 'middle', charSpacing: 0.5 });
+          group.items.forEach(function (it) {
+            var ms = it.ms, planned = it.planned, actual = it.actual, v = it.v;
+            var laneY = y + 0.24 + it.lane * MS_LANE_STEP_IN;
+            var diamondCenterY = laneY + 0.27;
+            if (planned && actual) {
+              var lo = Math.min(xAt(planned), xAt(actual)), hi = Math.max(xAt(planned), xAt(actual));
+              if (hi > lo) s3.addShape('rect', { x: lo, y: diamondCenterY - 0.004, w: hi - lo, h: 0.008, fill: { color: C.dk2, transparency: 40 }, line: { type: 'none' } });
+            }
+            var overdue = !!(v && v.overdue);
+            if (planned) {
+              var px = xAt(planned);
+              s3.addShape('diamond', { x: px - half, y: diamondCenterY - half, w: dSize, h: dSize, fill: { color: C.lt2 }, line: { color: C.dk2, width: 1.25, dashType: 'dash' } });
+            }
+            if (actual) {
+              var ax = xAt(actual);
+              var late = planned ? actual > planned : false;
+              s3.addShape('diamond', { x: ax - half, y: diamondCenterY - half, w: dSize, h: dSize, fill: { color: late ? C.red : C.mint }, line: { color: late ? C.red : C.mint, width: 1 } });
+            } else if (overdue) {
+              var tx = xAt(range.today);
+              s3.addShape('diamond', { x: tx - half, y: diamondCenterY - half, w: dSize, h: dSize, fill: { color: C.redTint }, line: { color: C.red, width: 1.25, dashType: 'dash' } });
+            }
+            edgeAwareText(s3, it.label, it.x + 0.11, laneY, Math.min(it.w, 3.4), { h: 0.15, fontFace: C.fontBody, fontSize: MS_FONT_PT, bold: overdue, color: overdue ? C.red : C.dk1 });
+          });
+          y += group.rowH;
+        }
+        if (includeMilestones && customerGroup) drawMilestoneGroupRow('CUSTOMER MILESTONES', customerGroup);
+        if (includeMilestones && projectGroup) drawMilestoneGroupRow('PROJECT MILESTONES', projectGroup);
+
+        epicsChunk.forEach(function (it, idx) {
+          var ps = parseDate(it.planStart), re = parseDate(effectiveRevisedEnd(it));
+          var as = parseDate(it.actualStart);
+          var fin = effectiveActualFinish(it);
+          var finishDate = fin.date ? parseDate(fin.date) : (fin.ongoing ? range.today : null);
+          if (idx % 2 === 1) {
+            s3.addShape('rect', { x: 0.25, y: y, w: 9.5, h: rowH, fill: { color: C.lt2, transparency: 85 }, line: { type: 'none' } });
+          }
+          var unplanned2 = !ps;
+          var epicLabel = it.name + (unplanned2 ? ' (unplanned)' : '');
+          s3.addText(epicLabel, { x: 0.4, y: y, w: X0 - 0.5, h: rowH, fontFace: C.fontBody, fontSize: 9, bold: true, color: unplanned2 ? C.unplanned : C.dk1, valign: 'middle' });
+          if (ps && re) {
+            var bx = xAt(ps), bw = Math.max(xAt(re) - bx, 0.05);
+            var plannedMd2 = manDaysFor(it);
+            if (plannedMd2 !== null) {
+              edgeAwareText(s3, plannedMd2 + ' md planned', bx, y + 0.01, 1.1, { fontFace: C.fontBody, fontSize: 6.5, color: C.dk2 });
+            }
+            s3.addShape('rect', { x: bx, y: y + 0.17, w: bw, h: 0.12, fill: { color: C.lt2 }, line: { color: C.dk2, width: 1.25, dashType: 'dash' } });
+
+            // If the commitment has been revised, mark where the ORIGINAL
+            // plan end used to be — a thin tick plus a small label, same as
+            // the web/print timeline's "orig. end" marker.
+            var pe2 = parseDate(it.planEnd);
+            if (pe2 && it.revisedEnd && it.revisedEnd !== it.planEnd) {
+              var peX = xAt(pe2);
+              s3.addShape('rect', { x: peX, y: y + 0.14, w: 0.012, h: 0.18, fill: { color: C.orange }, line: { type: 'none' } });
+              edgeAwareText(s3, 'orig. end', peX + 0.03, y + 0.005, 0.7, { fontFace: C.fontBody, fontSize: 6, color: C.orange });
+            }
+          }
+          if (as && finishDate) {
+            var late2 = (!unplanned2 && re) ? finishDate > re : false;
+            var ax2 = xAt(as), aw = Math.max(xAt(finishDate) - ax2, 0.05);
+            var barColor = unplanned2 ? C.unplanned : (late2 ? C.red : C.mint);
+            s3.addShape('roundRect', { x: ax2, y: y + 0.34, w: aw, h: 0.12, rectRadius: 0.02, fill: { color: barColor }, line: { type: 'none' } });
+            if (unplanned2) {
+              edgeAwareText(s3, 'Unplanned', ax2 + aw + 0.06, y + 0.29, 0.8, { fontFace: C.fontBody, fontSize: 7.5, bold: true, color: C.unplanned });
+            } else {
+              var v2 = varianceFor(it);
+              if (v2 !== null) {
+                var label = v2.value === 0 ? 'On plan' : ((v2.value > 0 ? '+' : '') + v2.value + ' md');
+                var labelW = 0.8;
+                if (fin.ongoing) {
+                  var rem2 = remainingWorkdaysFor(it);
+                  if (rem2 !== null) {
+                    label += rem2 > 0 ? (' · ' + rem2 + 'd left') : (rem2 === 0 ? ' · due today' : ' · ' + Math.abs(rem2) + 'd overdue');
+                    labelW = 1.6;
+                  }
+                }
+                edgeAwareText(s3, label, ax2 + aw + 0.06, y + 0.29, labelW, { fontFace: C.fontBody, fontSize: 7.5, bold: true, color: v2.value > 0 ? C.red : C.mint });
+              }
+            }
+          }
+          y += rowH;
+        });
+
+        var todayX = xAt(range.today);
+        s3.addShape('rect', { x: todayX, y: topY, w: 0.015, h: totalRowsH, fill: { color: C.dk1 }, line: { type: 'none' } });
+        var todayChipW = 0.62;
+        var todayChipX = Math.min(Math.max(todayX - todayChipW / 2, 0.3), 9.65 - todayChipW);
+        s3.addShape('roundRect', { x: todayChipX, y: panelTop - 0.08, w: todayChipW, h: 0.2, rectRadius: 0.03, fill: { color: C.dk1 }, line: { type: 'none' } });
+        s3.addText('TODAY', { x: todayChipX, y: panelTop - 0.08, w: todayChipW, h: 0.2, align: 'center', valign: 'middle', fontFace: C.fontBody, fontSize: 7.5, bold: true, color: 'FFFFFF', charSpacing: 0.5 });
+
+        // Color legend, pinned below the framed panel regardless of how tall
+        // the timeline itself grew (so it never collides with the rows above).
+        var legendY = Math.min(Math.max(panelBottom + 0.18, 5.05), 5.15);
+        var legendItems = [
+          { shape: 'rect', color: C.lt2, line: C.dk2, dash: true, label: 'Planned' },
+          { shape: 'rect', color: C.mint, line: C.mint, label: 'Actual — on/ahead of plan' },
+          { shape: 'rect', color: C.red, line: C.red, label: 'Actual — behind plan' },
+          { shape: 'rect', color: C.unplanned, line: C.unplanned, label: 'Unplanned work' },
+          { shape: 'rect', color: C.orange, line: C.orange, label: 'Original plan end (if revised)' },
+          { shape: 'diamond', color: C.lt2, line: C.dk2, dash: true, label: 'Planned milestone' },
+          { shape: 'diamond', color: C.mint, line: C.mint, label: 'Actual milestone' }
+        ];
+        var legendX = 0.4, legendRowY = legendY, ITEM_W = 1.48;
+        legendItems.forEach(function (it) {
+          if (legendX + ITEM_W > 9.7) { legendX = 0.4; legendRowY += 0.22; }
+          var sw = it.shape === 'diamond' ? 0.09 : 0.16, sh = 0.09;
+          s3.addShape(it.shape, {
+            x: legendX, y: legendRowY + (0.09 - sh) / 2, w: sw, h: sh,
+            fill: { color: it.color }, line: { color: it.line, width: 1, dashType: it.dash ? 'dash' : 'solid' }
+          });
+          legendX += sw + 0.05;
+          s3.addText(it.label, { x: legendX, y: legendRowY - 0.06, w: 1.38, h: 0.2, fontFace: C.fontBody, fontSize: 7, color: C.dk2 });
+          legendX += ITEM_W;
+        });
+      }
+
+      // Paginate: the first slide carries the milestone rows, so it has less
+      // room left for epics; continuation slides are epics-only and get the
+      // full budget. Every page shares the same date axis, so the scale
+      // stays consistent across slides.
+      var firstPageBudget = MAX_ROWS_H - msRowH;
+      var epicsPerFirstPage = Math.max(0, Math.floor(firstPageBudget / rowH));
+      var epicsPerContinuation = Math.max(1, Math.floor(MAX_ROWS_H / rowH));
+
+      var epicPages = [epics.slice(0, epicsPerFirstPage)];
+      var rest = epics.slice(epicsPerFirstPage);
+      while (rest.length > 0) {
+        epicPages.push(rest.slice(0, epicsPerContinuation));
+        rest = rest.slice(epicsPerContinuation);
+      }
+      // If milestones alone already filled (or exceeded) the first page's
+      // budget and there are no epics to show, drop the pagination down to
+      // just that one milestones-only page instead of an extra empty one.
+      if (epicPages.length > 1 && epicPages[0].length === 0 && epics.length === 0) epicPages = [[]];
+
+      epicPages.forEach(function (chunk, i) {
+        drawTimelineSlide(chunk, i === 0, i + 1, epicPages.length);
+      });
+
+      // ---- Slide 4+: Epics table ----
+      // Manually paginated tables: pptxgenjs's own autoPage sometimes splits
+      // inconsistently (missing header styling, uneven rows per slide), so
+      // each table slide is built explicitly here, with a fixed number of
+      // data rows per page and the title/branding repeated on every page.
+      function addPaginatedTableSlides(titleText, headerLabels, bodyRows, colW, aligns, rowsPerSlide) {
+        var CELL_BORDER = { type: 'solid', pt: 0.75, color: C.lt2 };
+        var CELL_MARGIN = [4, 6, 4, 6];
+
+        var headerRow = headerLabels.map(function (h, cIdx) {
+          return {
+            text: h.toUpperCase(),
+            options: {
+              fill: { color: C.red }, color: 'FFFFFF', bold: true, fontFace: C.fontBody, fontSize: 9,
+              align: aligns[cIdx], valign: 'middle', charSpacing: 0.5, margin: CELL_MARGIN,
+              border: { type: 'solid', pt: 0.75, color: C.red }
+            }
+          };
+        });
+
+        var pages = [];
+        for (var i = 0; i < bodyRows.length; i += rowsPerSlide) pages.push(bodyRows.slice(i, i + rowsPerSlide));
+        if (pages.length === 0) pages.push([]);
+
+        pages.forEach(function (chunk, idx) {
+          var s = pres.addSlide();
+          s.background = { color: 'FFFFFF' };
+          s.addShape('rect', { x: 0, y: 0, w: 10, h: 0.6, fill: { color: C.red }, line: { type: 'none' } });
+          var suffix = pages.length > 1 ? '  (' + (idx + 1) + '/' + pages.length + ')' : '';
+          s.addText(titleText + suffix, { x: 0.4, y: 0.09, w: 9, h: 0.42, fontFace: C.fontHead, fontSize: 18, bold: true, color: 'FFFFFF' });
+
+          var styledChunk = chunk.map(function (row, rIdx) {
+            var zebra = rIdx % 2 === 1;
+            return row.map(function (cell, cIdx) {
+              return {
+                text: cell.text,
+                options: Object.assign({}, cell.options, {
+                  align: aligns[cIdx], valign: 'middle', margin: CELL_MARGIN, border: CELL_BORDER,
+                  fill: { color: zebra ? C.lt2 : 'FFFFFF', transparency: zebra ? 72 : 0 }
+                })
+              };
+            });
+          });
+
+          s.addTable([headerRow].concat(styledChunk), { x: 0.3, y: 0.85, w: 9.4, colW: colW, border: CELL_BORDER });
+        });
+      }
+
+      var ROWS_PER_SLIDE = 11; // conservative so a wrapped description cell can't push a table past the slide
+
+      var epicHeaderLabels = ['Epic', 'Plan Start', 'Plan End', 'Revised End', 'Actual Start', 'Actual End', 'Actual Complete', 'Man-days', 'Variance'];
+      var epicAligns = ['left', 'center', 'center', 'center', 'center', 'center', 'center', 'center', 'center'];
+      var epicBodyRows = epics.map(function (it) {
+        var md = manDaysFor(it), v = varianceFor(it);
+        var vColor = v ? (v.value > 0 ? C.red : (v.value < 0 ? C.mint : C.dk2)) : C.dk2;
+        return [
+          { text: it.name, options: { fontFace: C.fontBody, fontSize: 9, bold: true, color: C.dk1 } },
+          { text: it.planStart || '—', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+          { text: it.planEnd || '—', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+          { text: effectiveRevisedEnd(it) || '—', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+          { text: it.actualStart || '—', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+          { text: it.actualEnd || '—', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+          { text: it.actualComplete || (it.actualStart ? 'In progress' : '—'), options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+          { text: md === null ? '—' : md + ' md', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+          { text: v === null ? '—' : (v.value > 0 ? '+' : '') + v.value + ' md' + (v.ongoing ? ' (so far)' : ''), options: { fontFace: C.fontBody, fontSize: 9, bold: true, color: vColor } }
+        ];
+      });
+      addPaginatedTableSlides('Epics — Plan vs Actual', epicHeaderLabels, epicBodyRows,
+        [1.6, 0.85, 0.85, 0.95, 0.85, 0.85, 0.95, 0.75, 0.95], epicAligns, ROWS_PER_SLIDE);
+
+      // ---- Slide 5+: Milestones table ----
+      if (milestones.length) {
+        var msHeaderLabels = ['Milestone', 'Type', 'Description', 'Planned', 'Actual', 'Variance', 'Time left'];
+        var msAligns = ['left', 'center', 'left', 'center', 'center', 'center', 'center'];
+        var msBodyRows = milestones.map(function (ms) {
+          var v = milestoneVariance(ms);
+          var varText = '—', leftText = '—', varColor = C.dk2;
+          if (v) {
+            if (v.pending && !v.overdue) { varText = 'Not yet reached'; leftText = v.daysLeft === 0 ? 'Due today' : (v.daysLeft + 'd left'); }
+            else if (v.pending && v.overdue) { varText = v.value + 'd overdue'; leftText = v.value + 'd overdue'; varColor = C.red; }
+            else { varText = v.value === 0 ? 'On time' : ((v.value > 0 ? '+' : '') + v.value + 'd'); leftText = 'Reached'; varColor = v.value > 0 ? C.red : (v.value < 0 ? C.mint : C.dk2); }
+          }
+          return [
+            { text: ms.name, options: { fontFace: C.fontBody, fontSize: 9, bold: true, color: C.dk1 } },
+            { text: ms.category === 'customer' ? 'Customer' : 'Project', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+            { text: ms.description || '—', options: { fontFace: C.fontBody, fontSize: 8, color: C.dk2 } },
+            { text: ms.plannedDate || '—', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+            { text: ms.actualDate || '—', options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } },
+            { text: varText, options: { fontFace: C.fontBody, fontSize: 9, bold: true, color: varColor } },
+            { text: leftText, options: { fontFace: C.fontBody, fontSize: 9, color: C.dk2 } }
+          ];
+        });
+        addPaginatedTableSlides('Milestones — Plan vs Actual', msHeaderLabels, msBodyRows,
+          [1.3, 0.8, 2.6, 1.0, 1.0, 1.1, 1.2], msAligns, ROWS_PER_SLIDE);
+      }
+
+      // ---- Final slide: Thank you ----
+      var sEnd = pres.addSlide();
+      sEnd.background = { color: 'FFFFFF' };
+      var slw = 1.15, slh = slw * STACK_AR;
+      sEnd.addImage({ data: stackedLogo, x: (10 - slw) / 2, y: 1.1, w: slw, h: slh });
+      sEnd.addText('Thank You', { x: 0, y: 1.1 + slh + 0.3, w: 10, h: 0.6, align: 'center', fontFace: C.fontHead, fontSize: 28, bold: true, color: C.red });
+
+      var fileName = (proj.name.replace(/[^a-z0-9\-_ ]/gi, '').trim().replace(/\s+/g, '-') || 'roadmap') + '.pptx';
+      var pptxBlob = await pres.write({ outputType: 'blob' });
+
+      if (downloadsCap) {
+        try {
+          await downloadsCap.save({ filename: fileName, data: pptxBlob });
+          setStatus('Exported "' + proj.name + '" to PowerPoint.');
+        } catch (err) {
+          var code = err && err.code;
+          if (code === 'declined') setStatus('Export cancelled.');
+          else setStatus('Could not export: ' + (err && err.message ? err.message : 'unknown error') + '.');
+        }
+      } else {
+        browserDownload(fileName, pptxBlob);
+        setStatus('Exported "' + proj.name + '" to PowerPoint.');
+      }
+    } catch (err) {
+      setStatus('Could not build the PowerPoint: ' + (err && err.message ? err.message : 'unknown error') + '.');
+    } finally {
+      exportPptxBtn.disabled = false;
+      exportPptxBtn.textContent = prevLabel;
+    }
+  }
+
+  document.getElementById('export-pptx-btn').addEventListener('click', exportPptx);
+
+  document.getElementById('print-btn').addEventListener('click', function () { window.print(); });
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    var proj = activeProject();
+    if (proj.epics.length === 0 && proj.milestones.length === 0) return;
+    if (confirm('Clear all epics and milestones in "' + proj.name + '"?')) {
+      proj.epics = [];
+      proj.milestones = [];
+      cancelEdit();
+      cancelEditMilestone();
+      save();
+      render();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

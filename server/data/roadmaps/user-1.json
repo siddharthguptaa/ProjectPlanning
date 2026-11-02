@@ -2,13 +2,517 @@
   "projects": [
     {
       "id": 1,
-      "name": "Product Roadmap",
-      "epics": [],
-      "milestones": []
+      "name": "CPLACE<->PZNG",
+      "epics": [
+        {
+          "name": "PMO Administration",
+          "description": "All the topics related to Masters and Setting",
+          "planStart": "2026-08-03",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-08-03",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 1
+        },
+        {
+          "name": "FRAME (PDIP)",
+          "description": "Process Master in PMO Administration Linked Topic",
+          "planStart": "2026-08-03",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-09-01",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 2
+        },
+        {
+          "name": "Project Status",
+          "description": "Overall Status of the Project",
+          "planStart": "2026-08-03",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-08-17",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 3
+        },
+        {
+          "name": "Action List",
+          "description": "Action list mapped to a Project",
+          "planStart": "2026-08-03",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-08-03",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 4
+        },
+        {
+          "name": "Additonal Schedule",
+          "description": "Gantt Chart process",
+          "planStart": "2026-08-03",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-08-03",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 5
+        },
+        {
+          "name": "Schedule",
+          "description": "Gantt Chart",
+          "planStart": "2026-08-03",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-08-03",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 6
+        },
+        {
+          "name": "Project Team",
+          "description": "Team of the project with Deputy function",
+          "planStart": "2026-08-03",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-09-01",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 7
+        },
+        {
+          "name": "Controlling Dashboard",
+          "description": "Finance related data is available",
+          "planStart": "2026-09-15",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-09-21",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 8
+        },
+        {
+          "name": "Finance Data History",
+          "description": "Archive values link to Controlling dashboard data",
+          "planStart": "2026-09-17",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-12-15",
+          "actualStart": "2026-09-21",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 9
+        },
+        {
+          "name": "Change Managment",
+          "description": "CM, CM Dashboard, CR Tracking (overall complete workflow)",
+          "planStart": "2026-10-01",
+          "planEnd": "2026-11-30",
+          "revisedEnd": "2027-02-15",
+          "actualStart": "2026-10-01",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 10
+        },
+        {
+          "name": "Personal/Start Dashboard",
+          "description": "Assigned Project on Project Master and Assigned Action on User Dashboard",
+          "planStart": "2026-10-01",
+          "planEnd": "2026-11-27",
+          "revisedEnd": "2026-11-27",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 11
+        },
+        {
+          "name": "One Pager",
+          "description": "One Page Report for one particular project",
+          "planStart": "2026-10-01",
+          "planEnd": "2026-11-30",
+          "revisedEnd": "2027-01-29",
+          "actualStart": "2026-10-06",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 12
+        },
+        {
+          "name": "PM Dashboard",
+          "description": "",
+          "planStart": "2026-10-19",
+          "planEnd": "2026-11-30",
+          "revisedEnd": "2027-02-26",
+          "actualStart": "2026-10-12",
+          "actualEnd": "2026-10-19",
+          "actualComplete": null,
+          "id": 13
+        },
+        {
+          "name": "PMO Dashboard",
+          "description": "7 reports to be developed",
+          "planStart": "2026-10-26",
+          "planEnd": "2026-12-24",
+          "revisedEnd": "2027-02-26",
+          "actualStart": "2026-10-26",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 14
+        },
+        {
+          "name": "Management Dashboard",
+          "description": "13 reports needs to be developed",
+          "planStart": "2026-10-26",
+          "planEnd": "2026-12-24",
+          "revisedEnd": "2027-01-29",
+          "actualStart": "2026-10-26",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 15
+        },
+        {
+          "name": "Risk Management",
+          "description": "",
+          "planStart": "2026-11-02",
+          "planEnd": "2027-01-29",
+          "revisedEnd": "2027-02-26",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 16
+        },
+        {
+          "name": "Data Migration",
+          "description": "",
+          "planStart": "2026-11-02",
+          "planEnd": "2027-03-31",
+          "revisedEnd": "2027-03-31",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 17
+        },
+        {
+          "name": "User Access/Onboarding Setup/Support",
+          "description": "We will define Roles & Rights of the user and registration and approval of them.",
+          "planStart": "2026-11-16",
+          "planEnd": "2027-02-26",
+          "revisedEnd": "2027-02-26",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 18
+        },
+        {
+          "name": "PZNG <-> CPlace Compatibility",
+          "description": "Code merge and common page conflict and Database table updations",
+          "planStart": "2026-12-15",
+          "planEnd": "2027-01-29",
+          "revisedEnd": "2027-01-29",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 19
+        },
+        {
+          "name": "GR Meeting Report",
+          "description": "",
+          "planStart": "2026-11-02",
+          "planEnd": "2026-11-30",
+          "revisedEnd": "2027-01-29",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 20
+        },
+        {
+          "name": "Tool Calculation Dashboard",
+          "description": "",
+          "planStart": "2026-11-02",
+          "planEnd": "2026-12-24",
+          "revisedEnd": "2027-01-29",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 21
+        },
+        {
+          "name": "IShare Interface",
+          "description": "",
+          "planStart": null,
+          "planEnd": null,
+          "revisedEnd": null,
+          "actualStart": "2026-11-02",
+          "actualEnd": "2027-02-26",
+          "actualComplete": null,
+          "id": 22
+        },
+        {
+          "name": "Project Team Deputy Information",
+          "description": "Deputy Name for all Areas",
+          "planStart": null,
+          "planEnd": null,
+          "revisedEnd": null,
+          "actualStart": "2026-08-17",
+          "actualEnd": "2026-11-30",
+          "actualComplete": null,
+          "id": 23
+        },
+        {
+          "name": "PE Dashboard",
+          "description": "New Dashboard added in Oct-26 in CPlace",
+          "planStart": null,
+          "planEnd": null,
+          "revisedEnd": null,
+          "actualStart": "2026-11-16",
+          "actualEnd": "2027-01-29",
+          "actualComplete": null,
+          "id": 24
+        }
+      ],
+      "milestones": [
+        {
+          "name": "Go-Live",
+          "category": "customer",
+          "description": "",
+          "plannedDate": "2027-03-31",
+          "actualDate": null,
+          "id": 1
+        },
+        {
+          "name": "UAT",
+          "category": "customer",
+          "description": "",
+          "plannedDate": "2026-11-02",
+          "actualDate": "2026-10-09",
+          "id": 2
+        },
+        {
+          "name": "Modules 🎯",
+          "category": "project",
+          "description": "",
+          "plannedDate": "2026-11-30",
+          "actualDate": null,
+          "id": 3
+        },
+        {
+          "name": "Reports/Dashboard 🎯",
+          "category": "project",
+          "description": "",
+          "plannedDate": "2026-12-24",
+          "actualDate": null,
+          "id": 4
+        },
+        {
+          "name": "Migration ✅",
+          "category": "project",
+          "description": "",
+          "plannedDate": "2027-03-12",
+          "actualDate": null,
+          "id": 5
+        },
+        {
+          "name": "OnBoarding Docs",
+          "category": "customer",
+          "description": "",
+          "plannedDate": "2027-02-26",
+          "actualDate": null,
+          "id": 6
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "ODIN",
+      "epics": [
+        {
+          "name": "Manpower Hiring",
+          "description": "We will hire 4 manpower- 2 BE, 2FE",
+          "planStart": "2026-09-01",
+          "planEnd": "2026-10-30",
+          "revisedEnd": "2026-11-17",
+          "actualStart": "2026-09-08",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 25
+        },
+        {
+          "name": "Project and Database Setup",
+          "description": "New Project setup API, UI and DB setup",
+          "planStart": "2026-11-02",
+          "planEnd": "2026-11-30",
+          "revisedEnd": "2026-11-30",
+          "actualStart": "2026-10-29",
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 26
+        },
+        {
+          "name": "Authentication, Authorization and Overall functions",
+          "description": "",
+          "planStart": "2026-11-02",
+          "planEnd": "2026-12-15",
+          "revisedEnd": "2026-12-15",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 27
+        },
+        {
+          "name": "Global Master Tables",
+          "description": "All global tables as planned and added in excel sheet shared by Jana",
+          "planStart": "2026-12-16",
+          "planEnd": "2027-01-29",
+          "revisedEnd": "2027-01-29",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 28
+        },
+        {
+          "name": "Local Maintenance Table",
+          "description": "All local tables as planned and added in excel sheet shared by Jana",
+          "planStart": "2027-02-01",
+          "planEnd": "2027-02-26",
+          "revisedEnd": "2027-02-26",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 29
+        },
+        {
+          "name": "Module 1: New Project Creation with ISP Interface",
+          "description": "New Project Creation with ISP Interface",
+          "planStart": "2027-03-01",
+          "planEnd": "2027-06-30",
+          "revisedEnd": "2027-06-30",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 30
+        },
+        {
+          "name": "Module 2: Exisitng Project Planning",
+          "description": "Exisitng Project Planning and their data from controlling sheets",
+          "planStart": "2027-05-03",
+          "planEnd": "2027-06-30",
+          "revisedEnd": "2027-06-30",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 31
+        },
+        {
+          "name": "Module 3: Reports W.R.T. Module 1&2",
+          "description": "",
+          "planStart": "2027-06-01",
+          "planEnd": "2027-08-31",
+          "revisedEnd": "2027-08-31",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 32
+        },
+        {
+          "name": "Data Migration for Module 2 & Validation",
+          "description": "",
+          "planStart": "2027-07-01",
+          "planEnd": "2027-08-31",
+          "revisedEnd": "2027-08-31",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 33
+        },
+        {
+          "name": "Software Launch, Onboarding Users & Support",
+          "description": "",
+          "planStart": "2027-07-01",
+          "planEnd": "2027-09-30",
+          "revisedEnd": "2027-09-30",
+          "actualStart": null,
+          "actualEnd": null,
+          "actualComplete": null,
+          "id": 34
+        }
+      ],
+      "milestones": [
+        {
+          "name": "UAT",
+          "category": "customer",
+          "description": "User Acceptance Testing",
+          "plannedDate": "2027-05-03",
+          "actualDate": null,
+          "id": 7
+        },
+        {
+          "name": "KickOff",
+          "category": "customer",
+          "description": "Start of the project",
+          "plannedDate": "2026-09-01",
+          "actualDate": "2026-09-01",
+          "id": 8
+        },
+        {
+          "name": "SOD",
+          "category": "customer",
+          "description": "start of development",
+          "plannedDate": "2026-11-02",
+          "actualDate": "2026-11-02",
+          "id": 9
+        },
+        {
+          "name": "Release",
+          "category": "customer",
+          "description": "Release of phase-1",
+          "plannedDate": "2027-08-27",
+          "actualDate": null,
+          "id": 10
+        },
+        {
+          "name": "Code Setup",
+          "category": "project",
+          "description": "With two manpower",
+          "plannedDate": "2026-10-30",
+          "actualDate": "2026-10-29",
+          "id": 11
+        },
+        {
+          "name": "Concept Understanding",
+          "category": "project",
+          "description": "Deep dive into documents shared by Jana",
+          "plannedDate": "2026-11-27",
+          "actualDate": null,
+          "id": 12
+        },
+        {
+          "name": "Masters🎯",
+          "category": "project",
+          "description": "",
+          "plannedDate": "2027-02-26",
+          "actualDate": null,
+          "id": 13
+        },
+        {
+          "name": "Project Creation",
+          "category": "project",
+          "description": "New/Existing Project addition and Maientenance workflow",
+          "plannedDate": "2027-05-28",
+          "actualDate": null,
+          "id": 14
+        },
+        {
+          "name": "Reports",
+          "category": "project",
+          "description": "Reports Module3",
+          "plannedDate": "2027-06-30",
+          "actualDate": null,
+          "id": 15
+        }
+      ]
     }
   ],
   "activeId": 1,
-  "nextProjectId": 2,
-  "nextEpicId": 1,
-  "nextMilestoneId": 1
+  "nextProjectId": 3,
+  "nextEpicId": 35,
+  "nextMilestoneId": 16
 }

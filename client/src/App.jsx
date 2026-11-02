@@ -203,6 +203,20 @@ export default function App() {
   const cancelEditEpic = useCallback(() => setEditingEpicId(null), []);
   const cancelEditMilestone = useCallback(() => setEditingMilestoneId(null), []);
 
+  const handleClearProjectData = useCallback(() => {
+    const current = dataRef.current;
+    const project = current.projects.find((p) => p.id === current.activeId);
+    if (project.epics.length === 0 && project.milestones.length === 0) return;
+    if (!confirm(`Clear all epics and milestones in "${project.name}"? This can't be undone.`)) return;
+
+    saveAndSetData((prev) => ({
+      ...prev,
+      projects: withUpdatedProject(prev.projects, prev.activeId, (p) => ({ ...p, epics: [], milestones: [] }))
+    }));
+    setEditingEpicId(null);
+    setEditingMilestoneId(null);
+  }, [saveAndSetData]);
+
   // Reads the chosen .xlsx file, then appends everything it finds into
   // the currently active project (new ids assigned from the counters —
   // same pattern as adding a single epic/milestone by hand, just many at once).
@@ -278,6 +292,14 @@ export default function App() {
         <p className="eyebrow">Roadmap review</p>
         <h1>Plan vs. actual</h1>
         <p className="sub">Logged in as <b>{currentUser.username}</b>{currentUser.isAdmin ? ' (admin)' : ''} — this data is private to your account.</p>
+        <div className="legend">
+          <div className="legend-item"><span className="swatch plan" />Planned</div>
+          <div className="legend-item"><span className="swatch ok" />Actual — on/ahead of plan</div>
+          <div className="legend-item"><span className="swatch late" />Actual — behind plan</div>
+          <div className="legend-item"><span className="swatch unplanned" />Unplanned work</div>
+          <div className="legend-item"><span className="swatch revised" />Original plan end (if revised)</div>
+          <div className="legend-item">◇ Planned milestone&nbsp;/&nbsp;◆ Actual milestone</div>
+        </div>
       </header>
 
       <div className="tabs-row">
@@ -328,7 +350,8 @@ export default function App() {
             <MilestoneTable milestones={activeProject.milestones} onEdit={setEditingMilestoneId} onDelete={deleteMilestone} />
           </div>
 
-          <div className="card">
+          <div className="card timeline-card">
+            <p className="print-only">{activeProject.name} — Timeline</p>
             <h2>Timeline</h2>
             <Timeline epics={activeProject.epics} milestones={activeProject.milestones} />
           </div>
@@ -348,6 +371,8 @@ export default function App() {
               <button onClick={handleExportPptx} disabled={isExportingPptx}>
                 {isExportingPptx ? 'Building PowerPoint…' : 'Export to PowerPoint'}
               </button>
+              <button onClick={() => window.print()}>Print / save as PDF</button>
+              <button onClick={handleClearProjectData}>Clear this project's data</button>
             </div>
           </footer>
         </>

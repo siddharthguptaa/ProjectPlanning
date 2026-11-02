@@ -338,6 +338,15 @@ const EpicRow = React.memo(function EpicRow({ epic, range }) {
               width: Math.max(range.percentFor(planEnd) - range.percentFor(planStart), 0.6) + '%'
             }}
           />
+          {epic.planEnd && epic.revisedEnd && epic.revisedEnd !== epic.planEnd && (
+            <div
+              className="revised-mark"
+              style={{ left: range.percentFor(parseDate(epic.planEnd)) + '%' }}
+              title={`Original plan end: ${fmt(parseDate(epic.planEnd))}`}
+            >
+              <span className="revised-mark-label">orig. end</span>
+            </div>
+          )}
         </>
       )}
 
